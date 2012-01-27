@@ -16,30 +16,39 @@ public class Face {
     
     Vertex[] vertices; 
     Vertex[] normal;
-    String material;
+    int currentMat;
     
     public Face(Vertex[] v)
     {
         vertices = v;
         normal = null;
+        currentMat = -1;
     }
     
     public Face(Vertex[] v, Vertex[] Normal)
     {
         vertices = v;
         normal = Normal;
+        currentMat = -1;
     }
     
-    public Face(Vertex[] v, Vertex[] Normal, String m)
+    public Face(Vertex[] v, Vertex[] Normal, int m)
     {
         vertices = v;
         normal = Normal;
-        material = m;
+        currentMat = m;
     }
     
     public void draw()
     {
         glBegin(GL_POLYGON);
+        if(currentMat>=0)
+        {
+            glMaterial(GL_FRONT,GL_AMBIENT,Material.materials.get(currentMat-1).getAmbient());
+            glMaterial(GL_FRONT,GL_DIFFUSE,Material.materials.get(currentMat-1).getDiffuse());
+            glMaterial(GL_FRONT,GL_SPECULAR,Material.materials.get(currentMat-1).getSpecular());
+        }
+        
         
         for(int i = 0;i<Array.getLength(vertices);i++)
         {

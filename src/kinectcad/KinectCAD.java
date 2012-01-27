@@ -14,6 +14,7 @@ import java.util.Scanner;
 import java.lang.Character;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
+import java.util.ListIterator;
 import org.lwjgl.BufferChecks;
 import org.lwjgl.BufferUtils;
 
@@ -78,29 +79,31 @@ public class KinectCAD
         glEnable(GL_LIGHTING);
         
         
-        DrawObject o = loadObj("C:\\Users\\George\\Desktop\\Cube.obj");
-		
+        DrawObject o = loadObj("C:\\Users\\George\\Desktop\\\\kinectCadfiles\\Bench.obj");
+	//DrawObject o =null;
+        
 	while (!Display.isCloseRequested()) {
 	
             
 	    drawScene(angleX,angleY,o);
                 
+            int scale = 1;
             
             if(Keyboard.isKeyDown(Keyboard.KEY_LEFT))
             {
-                angleY+=.2;                
+                angleY+=scale;                
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT))
             {
-                angleY-=.2;                
+                angleY-=scale;                
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_UP))
             {
-                angleX+=0.2;
+                angleX+=scale;
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_DOWN))
             {
-                angleX-=0.2;             
+                angleX-=scale;             
             }
 	    Display.update();
             try {
@@ -126,7 +129,7 @@ public class KinectCAD
    
     
     o.draw();
-      
+    //drawCube(); 
     
     
     glLoadIdentity();
@@ -137,6 +140,27 @@ public class KinectCAD
     public DrawObject loadObj(String file)
     {
         Scanner s;
+        
+        try {
+            s = new Scanner(new File(file));
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+        
+        while(s.hasNextLine())
+        {
+            String tS = s.nextLine();
+            if(tS.startsWith("mtllib"))
+            {
+                Material.load("C:\\Users\\George\\Desktop\\\\kinectCadfiles\\" + tS.substring(7));
+            }
+            
+        }
+        
+        s.close();
+        
+        
         try {
             s = new Scanner(new File(file));
         } catch (FileNotFoundException ex) {
@@ -149,12 +173,13 @@ public class KinectCAD
         ArrayList<Face> faceArray = new ArrayList<Face>(0);
         
         
+        
         while(s.hasNextLine())
         {
             String tS = s.nextLine();
             Vertex v = parseVertex(tS);
             Vertex vn = parseNormal(tS);
-            int[] vertIndArray = parseFace(tS);
+            
             if(v!=null)
             {
                 vertArray.add(v);
@@ -163,16 +188,36 @@ public class KinectCAD
             {
                 normArray.add(vn);
             }
-            if(vertIndArray!=null)
-            {
-                Vertex[] temp = new Vertex[]{vertArray.get(vertIndArray[0]-1),vertArray.get(vertIndArray[1]-1),vertArray.get(vertIndArray[2]-1)};
-                Vertex[] normTemp = new Vertex[]{normArray.get(vertIndArray[3]-1),normArray.get(vertIndArray[4]-1),normArray.get(vertIndArray[5]-1)};
-                Face f = new Face(temp,normTemp);
-                faceArray.add(f);
-                
-            }
+            
+            
         }
         
+        s.close();
+        
+        try {
+            s = new Scanner(new File(file));
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
+            return null;
+        }
+        int currMtl = -1;
+        while(s.hasNextLine())
+        {
+            String tS = s.nextLine();
+            if(tS.startsWith("usemtl")){
+                currMtl = matchMtl(tS.substring(7));
+                System.out.println(currMtl);
+            }
+            int[] vertIndArray = parseFace(tS);
+                if(vertIndArray!=null)
+                {
+                    Vertex[] temp = new Vertex[]{vertArray.get(vertIndArray[0]-1),vertArray.get(vertIndArray[1]-1),vertArray.get(vertIndArray[2]-1)};
+                    Vertex[] normTemp = new Vertex[]{normArray.get(vertIndArray[3]-1),normArray.get(vertIndArray[4]-1),normArray.get(vertIndArray[5]-1)};
+                    Face f = new Face(temp,normTemp,currMtl);
+                    faceArray.add(f);
+                
+                }
+        }
         s.close();
         Face[] fA = faceArray.toArray(new Face[0]);
         return new DrawObject(fA);        
@@ -233,7 +278,6 @@ public class KinectCAD
             s.skip("/?[0-9]*");
             int vn3 = s.nextInt();
             
-            
             return new int[] {v1,v2,v3,vn1,vn2,vn3};
         }}
         catch (Exception e){}
@@ -243,8 +287,15 @@ public class KinectCAD
     public void drawCube()
     {
         glBegin(GL_QUADS);
-    
-     glNormal3f( 0.0f, 0.0f, 1.0f);                  // Normal Pointing Towards Viewer
+    FloatBuffer temp = BufferUtils.createFloatBuffer(4);
+    temp.put(new float[]{.0f,.3f,.3f,1f});
+    temp.rewind();
+    //glMaterial(GL_FRONT, GL_AMBIENT, temp);
+    temp.put(new float[]{.6f,0f,0f,.1f});
+    temp.rewind();
+    glMaterial(GL_FRONT, GL_DIFFUSE, temp);
+        
+    glNormal3f( 0.0f, 0.0f, 1.0f);                  // Normal Pointing Towards Viewer
     glVertex3f(-1.0f, -1.0f,  1.0f);  // Point 1 (Front)
     glVertex3f( 1.0f, -1.0f,  1.0f);  // Point 2 (Front)
     glVertex3f( 1.0f,  1.0f,  1.0f);  // Point 3 (Front)
@@ -281,5 +332,16 @@ public class KinectCAD
     glVertex3f(-1.0f,  1.0f, -1.0f);  // Point 4 (Left)
     
     glEnd();
+    }
+
+    private int matchMtl(String substring) 
+    {
+        ListIterator<Material> mIt = Material.materials.listIterator();
+        while(mIt.hasNext()){
+            if(mIt.next().ref.matches(substring))
+                return mIt.previousIndex();
+        }
+        System.out.println("Material not matched");
+        return -1;
     }
 }
