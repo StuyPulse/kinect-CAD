@@ -52,9 +52,9 @@ public class Material {
                 KdFile = tS.substring(7);
                 
                 System.out.println(refTemp);
-                System.out.println(KaTemp[0]);
-                System.out.println(KdTemp[0]);
-                System.out.println(KsTemp[0]);
+                System.out.println(KaTemp[0] + " " + KaTemp[0] + " " + KaTemp[0]);
+                System.out.println(KdTemp[0] + " " + KdTemp[1] + " " + KdTemp[1]);
+                System.out.println(KsTemp[0] + " " + KsTemp[2] + " " + KsTemp[2]);
                 System.out.println(dTemp);
                 
                 
@@ -69,6 +69,10 @@ public class Material {
     public double[] Ka;
     public double[] Kd;
     public double[] Ks;
+    public FloatBuffer ABuff;
+    public FloatBuffer DBuff;
+    public FloatBuffer SBuff;
+    
     public double d;
     public String ref;
     
@@ -85,6 +89,10 @@ public class Material {
         
         d = D;
         ref = Ref;
+        
+        ABuff = getAmbient();
+        DBuff = getDiffuse();
+        SBuff = getSpecular();
     }
     
     public FloatBuffer getAmbient()

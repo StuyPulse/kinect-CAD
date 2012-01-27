@@ -206,7 +206,6 @@ public class KinectCAD
             String tS = s.nextLine();
             if(tS.startsWith("usemtl")){
                 currMtl = matchMtl(tS.substring(7));
-                System.out.println(currMtl);
             }
             int[] vertIndArray = parseFace(tS);
                 if(vertIndArray!=null)
