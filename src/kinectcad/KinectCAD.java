@@ -48,6 +48,9 @@ public class KinectCAD
         
         double angleX = 0;
         double angleY = 0;
+        double transX = 0;
+        double transY = 0;
+        double transZ = 0;
 
 	glClearColor(0.0f,0.0f,0.0f,1.0f);
 
@@ -79,15 +82,18 @@ public class KinectCAD
         glEnable(GL_LIGHTING);
         
         
-        DrawObject o = loadObj("C:\\Users\\George\\Desktop\\\\kinectCadfiles\\Bench.obj");
+        DrawObject o = loadObj("C:\\Users\\George\\Desktop\\\\kinectCadfiles\\Cube3.obj");
 	//DrawObject o =null;
-        
+        Timer timer = new Timer(50);
+        timer.start();
 	while (!Display.isCloseRequested()) {
 	
             
-	    drawScene(angleX,angleY,o);
+	    drawScene(angleX,angleY,new double[]{transX,transY,transZ},o);
                 
             int scale = 1;
+            double scaleT = .08;
+            double scaleZ = .5;
             
             if(Keyboard.isKeyDown(Keyboard.KEY_LEFT))
             {
@@ -105,23 +111,44 @@ public class KinectCAD
             {
                 angleX-=scale;             
             }
+            if(Keyboard.isKeyDown(Keyboard.KEY_W))
+            {
+                transY-=scaleT;                
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_S))
+            {
+                transY+=scaleT;                
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_A))
+            {
+                transX+=scaleT;                
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_D))
+            {
+                transX-=scaleT;                
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_Q))
+            {
+                transZ+=scaleZ;                
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_E))
+            {
+                transZ-=scaleZ;                
+            }
+            Display.setTitle("FPS: " + String.valueOf(timer.fps));
 	    Display.update();
-            //try {
-            //    Thread.sleep(1);
-            //} catch (InterruptedException ex) {
-            //    Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
-            //}
+            timer.burnExcess();
 	}
 		
 	Display.destroy();
     }
 	
-    public void drawScene(double angleX,double angleY,DrawObject o)
+    public void drawScene(double angleX,double angleY,double[] trans ,DrawObject o)
     {
         
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Clear The Screen And The Depth Buffer
     glLoadIdentity();     
-    glTranslated(0,0,-3);
+    glTranslated(trans[0],trans[1],-3 + trans[2]);
     glRotated(angleY,0,1,0);
     glRotated(angleX,1,0,0);
     glScaled(.5,.5,.5);

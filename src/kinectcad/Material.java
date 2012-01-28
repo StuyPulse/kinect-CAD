@@ -21,6 +21,7 @@ import org.lwjgl.BufferUtils;
 import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
 import org.newdawn.slick.util.ResourceLoader;
+import static org.lwjgl.opengl.GL11.*;
 
 /**
  *
@@ -171,9 +172,16 @@ public class Material {
             return;
         }
         try 
-        {texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("C:\\Users\\George\\Desktop\\kinectCadfiles\\" + file));}
+        {texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream("C:\\Users\\George\\Desktop\\kinectCadfiles\\" + file),true,GL_NEAREST );}
         catch (IOException ex)
         {Logger.getLogger(Material.class.getName()).log(Level.SEVERE, null, ex);}
+        
+        System.out.println("Texture loaded: "+texture);
+        System.out.println(">> Image width: "+texture.getImageWidth());
+        System.out.println(">> Image height: "+texture.getImageHeight());
+        System.out.println(">> Texture width: "+texture.getTextureWidth());
+        System.out.println(">> Texture height: "+texture.getTextureHeight());
+        
     }
     
     public void bindTexture()
