@@ -70,7 +70,7 @@ public class KinectCAD
         lightDiff.rewind();
         lightPos.rewind();
         
-        
+        glEnable(GL_TEXTURE_2D);
         glLight(GL_LIGHT1, GL_AMBIENT, lightAmb);     
         glLight(GL_LIGHT2,GL_DIFFUSE,lightDiff);
         glLight(GL_LIGHT2,GL_POSITION,lightPos);
@@ -79,7 +79,7 @@ public class KinectCAD
         glEnable(GL_LIGHTING);
         
         
-        DrawObject o = loadObj("C:\\Users\\George\\Desktop\\\\kinectCadfiles\\Bench.obj");
+        DrawObject o = loadObj("C:\\Users\\George\\Desktop\\\\kinectCadfiles\\Cube3.obj");
 	//DrawObject o =null;
         
 	while (!Display.isCloseRequested()) {
@@ -286,51 +286,51 @@ public class KinectCAD
     public void drawCube()
     {
         glBegin(GL_QUADS);
-    FloatBuffer temp = BufferUtils.createFloatBuffer(4);
-    temp.put(new float[]{.0f,.3f,.3f,1f});
-    temp.rewind();
-    //glMaterial(GL_FRONT, GL_AMBIENT, temp);
-    temp.put(new float[]{.6f,0f,0f,.1f});
-    temp.rewind();
-    glMaterial(GL_FRONT, GL_DIFFUSE, temp);
+        FloatBuffer temp = BufferUtils.createFloatBuffer(4);
+        temp.put(new float[]{.0f,.3f,.3f,1f});
+        temp.rewind();
+        //glMaterial(GL_FRONT, GL_AMBIENT, temp);
+        temp.put(new float[]{.6f,0f,0f,.1f});
+        temp.rewind();
+        glMaterial(GL_FRONT, GL_DIFFUSE, temp);
         
-    glNormal3f( 0.0f, 0.0f, 1.0f);                  // Normal Pointing Towards Viewer
-    glVertex3f(-1.0f, -1.0f,  1.0f);  // Point 1 (Front)
-    glVertex3f( 1.0f, -1.0f,  1.0f);  // Point 2 (Front)
-    glVertex3f( 1.0f,  1.0f,  1.0f);  // Point 3 (Front)
-    glVertex3f(-1.0f,  1.0f,  1.0f);  // Point 4 (Front)
-    // Back Face
-    glNormal3f( 0.0f, 0.0f,-1.0f);                  // Normal Pointing Away From Viewer
-    glVertex3f(-1.0f, -1.0f, -1.0f);  // Point 1 (Back)
-    glVertex3f(-1.0f,  1.0f, -1.0f);  // Point 2 (Back)
-    glVertex3f( 1.0f,  1.0f, -1.0f);  // Point 3 (Back)
-    glVertex3f( 1.0f, -1.0f, -1.0f);  // Point 4 (Back)
-    // Top Face
-    glNormal3f( 0.0f, 1.0f, 0.0f);                  // Normal Pointing Up
-    glVertex3f(-1.0f,  1.0f, -1.0f);  // Point 1 (Top)
-    glVertex3f(-1.0f,  1.0f,  1.0f);  // Point 2 (Top)
-    glVertex3f( 1.0f,  1.0f,  1.0f);  // Point 3 (Top)
-    glVertex3f( 1.0f,  1.0f, -1.0f);  // Point 4 (Top)
-    // Bottom Face
-    glNormal3f( 0.0f,-1.0f, 0.0f);                  // Normal Pointing Down
-    glVertex3f(-1.0f, -1.0f, -1.0f);  // Point 1 (Bottom)
-    glVertex3f( 1.0f, -1.0f, -1.0f);  // Point 2 (Bottom)
-    glVertex3f( 1.0f, -1.0f,  1.0f);  // Point 3 (Bottom)
-    glVertex3f(-1.0f, -1.0f,  1.0f);  // Point 4 (Bottom)
-    // Right face
-    glNormal3f( 1.0f, 0.0f, 0.0f);                  // Normal Pointing Right
-    glVertex3f( 1.0f, -1.0f, -1.0f);  // Point 1 (Right)
-    glVertex3f( 1.0f,  1.0f, -1.0f);  // Point 2 (Right)
-    glVertex3f( 1.0f,  1.0f,  1.0f);  // Point 3 (Right)
-    glVertex3f( 1.0f, -1.0f,  1.0f);  // Point 4 (Right)
-    // Left Face
-    glNormal3f(-1.0f, 0.0f, 0.0f);                  // Normal Pointing Left
-    glVertex3f(-1.0f, -1.0f, -1.0f);  // Point 1 (Left)
-    glVertex3f(-1.0f, -1.0f,  1.0f);  // Point 2 (Left)
-    glVertex3f(-1.0f,  1.0f,  1.0f);  // Point 3 (Left)
-    glVertex3f(-1.0f,  1.0f, -1.0f);  // Point 4 (Left)
+        glNormal3f( 0.0f, 0.0f, 1.0f);                  // Normal Pointing Towards Viewer
+        glVertex3f(-1.0f, -1.0f,  1.0f);  // Point 1 (Front)
+        glVertex3f( 1.0f, -1.0f,  1.0f);  // Point 2 (Front)
+        glVertex3f( 1.0f,  1.0f,  1.0f);  // Point 3 (Front)
+        glVertex3f(-1.0f,  1.0f,  1.0f);  // Point 4 (Front)
+        // Back Face
+        glNormal3f( 0.0f, 0.0f,-1.0f);                  // Normal Pointing Away From Viewer
+        glVertex3f(-1.0f, -1.0f, -1.0f);  // Point 1 (Back)
+        glVertex3f(-1.0f,  1.0f, -1.0f);  // Point 2 (Back)
+        glVertex3f( 1.0f,  1.0f, -1.0f);  // Point 3 (Back)
+        glVertex3f( 1.0f, -1.0f, -1.0f);  // Point 4 (Back)
+        // Top Face
+        glNormal3f( 0.0f, 1.0f, 0.0f);                  // Normal Pointing Up
+        glVertex3f(-1.0f,  1.0f, -1.0f);  // Point 1 (Top)
+        glVertex3f(-1.0f,  1.0f,  1.0f);  // Point 2 (Top)
+        glVertex3f( 1.0f,  1.0f,  1.0f);  // Point 3 (Top)
+        glVertex3f( 1.0f,  1.0f, -1.0f);  // Point 4 (Top)
+        // Bottom Face
+        glNormal3f( 0.0f,-1.0f, 0.0f);                  // Normal Pointing Down
+        glVertex3f(-1.0f, -1.0f, -1.0f);  // Point 1 (Bottom)
+        glVertex3f( 1.0f, -1.0f, -1.0f);  // Point 2 (Bottom)
+        glVertex3f( 1.0f, -1.0f,  1.0f);  // Point 3 (Bottom)
+        glVertex3f(-1.0f, -1.0f,  1.0f);  // Point 4 (Bottom)
+        // Right face
+        glNormal3f( 1.0f, 0.0f, 0.0f);                  // Normal Pointing Right
+        glVertex3f( 1.0f, -1.0f, -1.0f);  // Point 1 (Right)
+        glVertex3f( 1.0f,  1.0f, -1.0f);  // Point 2 (Right)
+        glVertex3f( 1.0f,  1.0f,  1.0f);  // Point 3 (Right)
+        glVertex3f( 1.0f, -1.0f,  1.0f);  // Point 4 (Right)
+        // Left Face
+        glNormal3f(-1.0f, 0.0f, 0.0f);                  // Normal Pointing Left
+        glVertex3f(-1.0f, -1.0f, -1.0f);  // Point 1 (Left)
+        glVertex3f(-1.0f, -1.0f,  1.0f);  // Point 2 (Left)
+        glVertex3f(-1.0f,  1.0f,  1.0f);  // Point 3 (Left)
+        glVertex3f(-1.0f,  1.0f, -1.0f);  // Point 4 (Left)
     
-    glEnd();
+        glEnd();
     }
 
     private int matchMtl(String substring) 
@@ -340,7 +340,7 @@ public class KinectCAD
             if(mIt.next().ref.matches(substring))
                 return mIt.previousIndex();
         }
-        System.out.println("Material not matched");
+        System.out.println("Material not matched: "+substring);
         return -1;
     }
 }

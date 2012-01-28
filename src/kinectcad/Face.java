@@ -16,7 +16,7 @@ public class Face {
     
     Vertex[] vertices; 
     Vertex[] normal;
-    int currentMat;
+    public int currentMat;
     
     public Face(Vertex[] v)
     {
@@ -42,12 +42,7 @@ public class Face {
     public void draw()
     {
         glBegin(GL_POLYGON);
-        if(currentMat>=0)
-        {
-            glMaterial(GL_FRONT,GL_AMBIENT,Material.materials.get(currentMat).ABuff);
-            glMaterial(GL_FRONT,GL_DIFFUSE,Material.materials.get(currentMat).DBuff);
-            glMaterial(GL_FRONT,GL_SPECULAR,Material.materials.get(currentMat).SBuff);
-        }
+        
         
         
         for(int i = 0;i<Array.getLength(vertices);i++)
