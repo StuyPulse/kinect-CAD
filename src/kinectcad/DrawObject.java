@@ -35,7 +35,7 @@ public class DrawObject {
                 glMaterial(GL_FRONT,GL_AMBIENT,Material.materials.get(faceArray[i].currentMat).ABuff);
                 glMaterial(GL_FRONT,GL_DIFFUSE,Material.materials.get(faceArray[i].currentMat).DBuff);
                 glMaterial(GL_FRONT,GL_SPECULAR,Material.materials.get(faceArray[i].currentMat).SBuff);
-                
+                Material.materials.get(faceArray[i].currentMat).bindTexture();
             }
             faceArray[i].draw();
         }

@@ -178,6 +178,9 @@ public class Material {
     
     public void bindTexture()
     {
+        if(texture == null){
+            return;
+        }
         texture.bind();
     }
     

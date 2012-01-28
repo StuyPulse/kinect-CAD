@@ -79,7 +79,7 @@ public class KinectCAD
         glEnable(GL_LIGHTING);
         
         
-        DrawObject o = loadObj("C:\\Users\\George\\Desktop\\\\kinectCadfiles\\Cube3.obj");
+        DrawObject o = loadObj("C:\\Users\\George\\Desktop\\\\kinectCadfiles\\Bench.obj");
 	//DrawObject o =null;
         
 	while (!Display.isCloseRequested()) {
@@ -106,11 +106,11 @@ public class KinectCAD
                 angleX-=scale;             
             }
 	    Display.update();
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            //try {
+            //    Thread.sleep(1);
+            //} catch (InterruptedException ex) {
+            //    Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
+            //}
 	}
 		
 	Display.destroy();
@@ -170,6 +170,7 @@ public class KinectCAD
         
         ArrayList<Vertex> vertArray = new ArrayList<Vertex>(0);
         ArrayList<Vertex> normArray = new ArrayList<Vertex>(0);
+        ArrayList<Vertex> texArray = new ArrayList<Vertex>(0);
         ArrayList<Face> faceArray = new ArrayList<Face>(0);
         
         
@@ -179,6 +180,7 @@ public class KinectCAD
             String tS = s.nextLine();
             Vertex v = parseVertex(tS);
             Vertex vn = parseNormal(tS);
+            Vertex vt = parseTex(tS);
             
             if(v!=null)
             {
@@ -188,7 +190,10 @@ public class KinectCAD
             {
                 normArray.add(vn);
             }
-            
+            if(vt!=null)
+            {
+                texArray.add(vt);
+            }
             
         }
         
@@ -211,8 +216,9 @@ public class KinectCAD
                 if(vertIndArray!=null)
                 {
                     Vertex[] temp = new Vertex[]{vertArray.get(vertIndArray[0]-1),vertArray.get(vertIndArray[1]-1),vertArray.get(vertIndArray[2]-1)};
-                    Vertex[] normTemp = new Vertex[]{normArray.get(vertIndArray[3]-1),normArray.get(vertIndArray[4]-1),normArray.get(vertIndArray[5]-1)};
-                    Face f = new Face(temp,normTemp,currMtl);
+                    Vertex[] texTemp = new Vertex[]{texArray.get(vertIndArray[3]-1),texArray.get(vertIndArray[4]-1),texArray.get(vertIndArray[5]-1)};
+                    Vertex[] normTemp = new Vertex[]{normArray.get(vertIndArray[6]-1),normArray.get(vertIndArray[7]-1),normArray.get(vertIndArray[8]-1)};
+                    Face f = new Face(temp,normTemp,currMtl,texTemp);
                     faceArray.add(f);
                 
                 }
@@ -258,6 +264,23 @@ public class KinectCAD
         return null;
     }
     
+    public Vertex parseTex(String tS)
+    {
+        try{if((tS.charAt(0) == 'v')&&(tS.charAt(1)=='t'))
+        {
+            Scanner s = new Scanner(tS);
+            s.skip("vt");
+            double x = s.nextDouble();
+            double y = s.nextDouble();
+            
+            
+            return new Vertex(x,y,0);
+        }
+        }
+        catch (Exception e){}
+        return null;
+    }
+    
     public int[] parseFace(String tS)
     {
         try{if((tS.charAt(0) == 'f'))
@@ -268,20 +291,22 @@ public class KinectCAD
             
             s.useDelimiter(" |/");
             int v1 = s.nextInt();
-            s.skip("/?[0-9]*");
+            int vt1 = s.nextInt();
             int vn1 = s.nextInt();
             int v2 = s.nextInt();
-            s.skip("/?[0-9]*");
+            int vt2 = s.nextInt();
             int vn2 = s.nextInt();
             int v3 = s.nextInt();
-            s.skip("/?[0-9]*");
+            int vt3 = s.nextInt();
             int vn3 = s.nextInt();
             
-            return new int[] {v1,v2,v3,vn1,vn2,vn3};
+            return new int[] {v1,v2,v3,vt1,vt2,vt3,vn1,vn2,vn3};
         }}
         catch (Exception e){}
         return null;
     }
+    
+    
     
     public void drawCube()
     {
