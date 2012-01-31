@@ -25,6 +25,10 @@ public class KinectCAD
     public FloatBuffer lightDiff;
     public FloatBuffer lightPos;
     
+    public static final String filepath = "C:\\Users\\George\\Desktop\\kinectCadfiles\\";
+    public final String file = "Bench.obj";
+    
+    
     public static void main(String[] args)
     {
         KinectCAD mainDerp = new KinectCAD();
@@ -43,14 +47,14 @@ public class KinectCAD
 	}
         
         glEnable(GL_DEPTH_TEST); 
-        
+        glEnable(GL_NORMALIZE);
         
         
         double angleX = 0;
         double angleY = 0;
         double transX = 0;
         double transY = 0;
-        double transZ = 0;
+        double transZ = 1000;
 
 	glClearColor(0.0f,0.0f,0.0f,1.0f);
 
@@ -82,18 +86,24 @@ public class KinectCAD
         glEnable(GL_LIGHTING);
         
         
-        DrawObject o = loadObj("C:\\Users\\George\\Desktop\\\\kinectCadfiles\\Cube3.obj");
+        DrawObject o = loadObj(filepath + file);
 	//DrawObject o =null;
-        Timer timer = new Timer(50);
+        Timer timer = new Timer(500);
         timer.start();
 	while (!Display.isCloseRequested()) {
 	
             
 	    drawScene(angleX,angleY,new double[]{transX,transY,transZ},o);
                 
-            int scale = 1;
-            double scaleT = .08;
-            double scaleZ = .5;
+            double scale = 50;
+            double scaleT = 1;
+            double scaleZ = 100;
+            System.out.println(timer.getDelay());
+            scale*=timer.getDelay();
+            scaleT*=timer.getDelay();
+            scaleZ*=timer.getDelay();
+            angleY= angleY%360;
+            angleX= angleX%360;
             
             if(Keyboard.isKeyDown(Keyboard.KEY_LEFT))
             {
@@ -133,7 +143,9 @@ public class KinectCAD
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_E))
             {
-                transZ-=scaleZ;                
+                transZ-=scaleZ;    
+                if(transZ<0)
+                    transZ = 0;
             }
             Display.setTitle("FPS: " + String.valueOf(timer.fps));
 	    Display.update();
@@ -148,10 +160,9 @@ public class KinectCAD
         
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Clear The Screen And The Depth Buffer
     glLoadIdentity();     
-    glTranslated(trans[0],trans[1],-3 + trans[2]);
-    glRotated(angleY,0,1,0);
+    glTranslated(trans[0],trans[1],-1*Math.pow(Math.abs(trans[2]*.02),2)*.01);
     glRotated(angleX,1,0,0);
-    glScaled(.5,.5,.5);
+    glRotated(angleY,0,1,0);
     	
    
     
@@ -180,7 +191,7 @@ public class KinectCAD
             String tS = s.nextLine();
             if(tS.startsWith("mtllib"))
             {
-                Material.load("C:\\Users\\George\\Desktop\\\\kinectCadfiles\\" + tS.substring(7));
+                Material.load(filepath + tS.substring(7));
             }
             
         }
