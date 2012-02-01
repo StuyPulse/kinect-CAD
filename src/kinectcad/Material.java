@@ -4,8 +4,6 @@
  */
 package kinectcad;
 
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -16,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.imageio.ImageIO;
 import org.lwjgl.BufferUtils;
 import org.newdawn.slick.opengl.Texture;
 import org.newdawn.slick.opengl.TextureLoader;
@@ -27,7 +24,7 @@ import static org.lwjgl.opengl.GL11.*;
  *
  * @author George
  */
-public class Material {
+public final class Material {
 
     
     public double[] Ka;
@@ -42,9 +39,19 @@ public class Material {
     public ByteBuffer texBuff;
     public Texture texture;
     
-    public static ArrayList<Material> materials = new ArrayList<Material>(0);
+    public static ArrayList<ArrayList<Material>> matLibs = new ArrayList<ArrayList<Material>>(0);
+    static int lastUnloadedArray = -1;
+    
+    public static void addLib()
+    {
+        matLibs.add(new ArrayList<Material>(0));
+        lastUnloadedArray = matLibs.size()-1;
+    }
     
     static void load(String string) {
+        
+        addLib();
+        
         Scanner s;
     
         try
@@ -73,7 +80,7 @@ public class Material {
                 if(refTemp!=null){
                     temp = new Material(KaTemp, KdTemp, KsTemp, dTemp ,refTemp);
                     temp.loadImage(KdFile);
-                    materials.add(temp);
+                    matLibs.get(lastUnloadedArray).add(temp);
                 }
                 
                 refTemp = tS.substring(7);
@@ -116,7 +123,8 @@ public class Material {
         
         temp = new Material(KaTemp, KdTemp, KsTemp, dTemp ,refTemp);
         temp.loadImage(KdFile);
-        materials.add(temp);
+        matLibs.get(lastUnloadedArray).add(temp);
+        lastUnloadedArray = -1;
         
     }
     

@@ -1,24 +1,20 @@
 
 package kinectcad;
 
+import com.sun.squawk.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lwjgl.input.Keyboard;
-import org.lwjgl.input.Mouse;
 import org.lwjgl.LWJGLException;
 import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import static org.lwjgl.opengl.GL11.*;
 import java.io.*;
 import java.util.Scanner;
-import java.lang.Character;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.ListIterator;
-import org.lwjgl.BufferChecks;
 import org.lwjgl.BufferUtils;
-//import edu.wpi.first.wpilibj;
-//carp
 
 public class KinectCAD
 {
@@ -28,7 +24,7 @@ public class KinectCAD
     public FloatBuffer lightPos;
     
     public static final String filepath = "C:\\Users\\George\\Desktop\\kinectCadfiles\\";
-    public final String file = "bench.obj";
+    public final String file = "cube4.obj";
     
     
     public static void main(String[] args)
@@ -44,7 +40,6 @@ public class KinectCAD
 	    Display.setDisplayMode(new DisplayMode(800,600));
 	    Display.create();
 	} catch (LWJGLException e) {
-	    e.printStackTrace();
 	    System.exit(0);
 	}
         
@@ -64,7 +59,7 @@ public class KinectCAD
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         // fovy, aspect ratio, zNear, zFar
-        org.lwjgl.util.glu.GLU.gluPerspective(30f, 1f, 1f, 100f);
+        org.lwjgl.util.glu.GLU.gluPerspective(30f, 1.1f, .1f, 1000f);
         // return to modelview matrix
         glMatrixMode(GL_MODELVIEW);
         
@@ -87,8 +82,9 @@ public class KinectCAD
         glEnable(GL_LIGHT2);
         glEnable(GL_LIGHTING);
         
+        
         long x = System.currentTimeMillis();
-        DrawObject o = loadObj(filepath + file);
+        DrawObject[] o = new DrawObject[]{loadObj(filepath + file),loadObj(filepath + "cube3.obj")};
         System.out.println("Loaded in " + (System.currentTimeMillis()-x) + " milliseconds.");
 	//DrawObject o =null;
         Timer timer = new Timer(500);
@@ -98,9 +94,9 @@ public class KinectCAD
             
 	    drawScene(angleX,angleY,new double[]{transX,transY,transZ},o);
                 
-            double scale = 50;
+            double scale = 50; //50
             double scaleT = 1;
-            double scaleZ = 100;
+            double scaleZ = 100; //100\
             scale*=timer.getDelay();
             scaleT*=timer.getDelay();
             scaleZ*=timer.getDelay();
@@ -145,11 +141,9 @@ public class KinectCAD
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_E))
             {
-                transZ-=scaleZ;    
-                if(transZ<0)
-                    transZ = 0;
+                transZ-=scaleZ;
             }
-            Display.setTitle("FPS: " + String.valueOf(timer.fps));
+            Display.setTitle("FPS: " + String.valueOf(timer.fps) + " " + transX + " " + transY + " " + transZ);
 	    Display.update();
             timer.burnExcess();
 	}
@@ -157,24 +151,27 @@ public class KinectCAD
 	Display.destroy();
     }
 	
-    public void drawScene(double angleX,double angleY,double[] trans ,DrawObject o)
+    public void drawScene(double angleX,double angleY,double[] trans ,DrawObject[] o)
     {
         
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Clear The Screen And The Depth Buffer
     glLoadIdentity();     
-    //glTranslated(trans[0],trans[1],-1*Math.pow(Math.abs(trans[2]*.02),2)*.01);
-    glTranslated(trans[0],trans[1],-1*Math.pow(1.5,Math.abs(trans[2]*.02))*.1);
+    
+    glTranslated(trans[0],trans[1],(trans[2]/Math.abs(trans[2]))*-1*Math.pow(1.5,Math.abs(trans[2]*.02))*.1);
+    	
     glRotated(angleX,1,0,0);
     glRotated(angleY,0,1,0);
-    	
    
+    int l = Arrays.length(o);
+    for(int i =0; i<l;i++){
+    o[i].draw();
+    }
     
-    o.draw();
-    //drawCube(); 
-    
+    //glRotated(angleX,1,0,0);
+    //glRotated(angleY,0,1,0);
+    //glTranslated(trans[0],trans[1],trans[2]+5);
     
     glLoadIdentity();
-    glTranslated(0, 0, 0);
     glFlush();
     }
     
@@ -259,6 +256,9 @@ public class KinectCAD
         
         i=0;
         c=0;
+        
+        int lib = Material.matLibs.size()-1;
+        
         while(s.hasNextLine())
         {
             if(c>1000){
@@ -285,7 +285,7 @@ public class KinectCAD
         }
         s.close();
         Face[] fA = faceArray.toArray(new Face[0]);
-        return new DrawObject(fA);        
+        return new DrawObject(fA,lib);        
     }
     
     public Vertex parseVertex(String tS)
@@ -428,10 +428,12 @@ public class KinectCAD
 
     private int matchMtl(String substring) 
     {
-        ListIterator<Material> mIt = Material.materials.listIterator();
-        while(mIt.hasNext()){
-            if(mIt.next().ref.matches(substring))
-                return mIt.previousIndex();
+        for(int i = 0; i < Material.matLibs.size();i++){
+            ListIterator<Material> mIt = Material.matLibs.get(i).listIterator();
+            while(mIt.hasNext()){
+                if(mIt.next().ref.matches(substring))
+                    return mIt.previousIndex();
+            }
         }
         System.out.println("Material not matched: "+substring);
         return -1;
