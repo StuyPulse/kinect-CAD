@@ -28,7 +28,7 @@ public class KinectCAD
     public FloatBuffer lightPos;
     
     public static final String filepath = "C:\\Users\\George\\Desktop\\kinectCadfiles\\";
-    public final String file = "joebot.obj";
+    public final String file = "bench.obj";
     
     
     public static void main(String[] args)
@@ -87,8 +87,9 @@ public class KinectCAD
         glEnable(GL_LIGHT2);
         glEnable(GL_LIGHTING);
         
-        
+        long x = System.currentTimeMillis();
         DrawObject o = loadObj(filepath + file);
+        System.out.println("Loaded in " + (System.currentTimeMillis()-x) + " milliseconds.");
 	//DrawObject o =null;
         Timer timer = new Timer(500);
         timer.start();
@@ -217,11 +218,15 @@ public class KinectCAD
         ArrayList<Face> faceArray = new ArrayList<Face>(0);
         
         int i = 0;
-        
+        int c = 0;
         while(s.hasNextLine())
         {
-            Display.setTitle("Parsing vertices: line " + String.valueOf(i) + "/" + t);
+            if(c>1000){
+                Display.setTitle("Parsing vertices: line " + String.valueOf(i) + "/" + t);
+                c = 0;
+            }
             i++;
+            c++;
             String tS = s.nextLine();
             Vertex v = parseVertex(tS);
             Vertex vn = parseNormal(tS);
@@ -253,9 +258,14 @@ public class KinectCAD
         int currMtl = -1;
         
         i=0;
+        c=0;
         while(s.hasNextLine())
         {
-            Display.setTitle("Parsing vertices: line " + String.valueOf(i) + "/" + t);
+            if(c>1000){
+                Display.setTitle("Parsing faces: line " + String.valueOf(i) + "/" + t);
+                c = 0;
+            }
+            c++;
             i++;
             String tS = s.nextLine();
             if(tS.startsWith("usemtl")){
