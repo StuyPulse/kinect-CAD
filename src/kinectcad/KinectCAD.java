@@ -17,6 +17,8 @@ import java.util.ArrayList;
 import java.util.ListIterator;
 import org.lwjgl.BufferChecks;
 import org.lwjgl.BufferUtils;
+//import edu.wpi.first.wpilibj;
+//carp
 
 public class KinectCAD
 {
@@ -26,14 +28,14 @@ public class KinectCAD
     public FloatBuffer lightPos;
     
     public static final String filepath = "C:\\Users\\George\\Desktop\\kinectCadfiles\\";
-    public final String file = "Bench.obj";
+    public final String file = "joebot.obj";
     
     
     public static void main(String[] args)
     {
         KinectCAD mainDerp = new KinectCAD();
-        mainDerp.start();
         
+        mainDerp.start();
        
     }
     
@@ -54,7 +56,7 @@ public class KinectCAD
         double angleY = 0;
         double transX = 0;
         double transY = 0;
-        double transZ = 1000;
+        double transZ = 500;
 
 	glClearColor(0.0f,0.0f,0.0f,1.0f);
 
@@ -98,7 +100,6 @@ public class KinectCAD
             double scale = 50;
             double scaleT = 1;
             double scaleZ = 100;
-            System.out.println(timer.getDelay());
             scale*=timer.getDelay();
             scaleT*=timer.getDelay();
             scaleZ*=timer.getDelay();
@@ -160,7 +161,8 @@ public class KinectCAD
         
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Clear The Screen And The Depth Buffer
     glLoadIdentity();     
-    glTranslated(trans[0],trans[1],-1*Math.pow(Math.abs(trans[2]*.02),2)*.01);
+    //glTranslated(trans[0],trans[1],-1*Math.pow(Math.abs(trans[2]*.02),2)*.01);
+    glTranslated(trans[0],trans[1],-1*Math.pow(1.5,Math.abs(trans[2]*.02))*.1);
     glRotated(angleX,1,0,0);
     glRotated(angleY,0,1,0);
     	
@@ -186,8 +188,11 @@ public class KinectCAD
             return null;
         }
         
+        int t = 0;
+        
         while(s.hasNextLine())
         {
+            t++;
             String tS = s.nextLine();
             if(tS.startsWith("mtllib"))
             {
@@ -211,10 +216,12 @@ public class KinectCAD
         ArrayList<Vertex> texArray = new ArrayList<Vertex>(0);
         ArrayList<Face> faceArray = new ArrayList<Face>(0);
         
-        
+        int i = 0;
         
         while(s.hasNextLine())
         {
+            Display.setTitle("Parsing vertices: line " + String.valueOf(i) + "/" + t);
+            i++;
             String tS = s.nextLine();
             Vertex v = parseVertex(tS);
             Vertex vn = parseNormal(tS);
@@ -232,7 +239,7 @@ public class KinectCAD
             {
                 texArray.add(vt);
             }
-            
+            //System.out.println(vertArray.size());
         }
         
         s.close();
@@ -244,8 +251,12 @@ public class KinectCAD
             return null;
         }
         int currMtl = -1;
+        
+        i=0;
         while(s.hasNextLine())
         {
+            Display.setTitle("Parsing vertices: line " + String.valueOf(i) + "/" + t);
+            i++;
             String tS = s.nextLine();
             if(tS.startsWith("usemtl")){
                 currMtl = matchMtl(tS.substring(7));
@@ -257,6 +268,7 @@ public class KinectCAD
                     Vertex[] texTemp = new Vertex[]{texArray.get(vertIndArray[3]-1),texArray.get(vertIndArray[4]-1),texArray.get(vertIndArray[5]-1)};
                     Vertex[] normTemp = new Vertex[]{normArray.get(vertIndArray[6]-1),normArray.get(vertIndArray[7]-1),normArray.get(vertIndArray[8]-1)};
                     Face f = new Face(temp,normTemp,currMtl,texTemp);
+                    //System.out.println("Face Added");
                     faceArray.add(f);
                 
                 }
@@ -268,35 +280,40 @@ public class KinectCAD
     
     public Vertex parseVertex(String tS)
     {
-        try{if((tS.charAt(0) == 'v')&&(tS.charAt(1)==' '))
-        {
-            Scanner s = new Scanner(tS);
-            s.skip("v");
-            double x = s.nextDouble();
-            double y = s.nextDouble();
-            double z = s.nextDouble();
-            
-            
-            return new Vertex(x,y,z);
+        try{
+            if((tS.charAt(0) == 'v')&&(tS.charAt(1)==' '))
+            {
+            //Scanner s = new Scanner(tS);
+            //s.skip("v");
+            //double x = s.nextDouble();
+            //double y = s.nextDouble();
+            //double z = s.nextDouble();
+                double[] temp = getNextThreeDoubles(tS);
+                return new Vertex(temp[0],temp[1],temp[2]);
+            }
         }
+        catch (Exception e){
+            //Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, e);
         }
-        catch (Exception e){}
         return null;
     }
     
     public Vertex parseNormal(String tS)
     {
-        try{if((tS.charAt(0) == 'v')&&(tS.charAt(1)=='n'))
-        {
-            Scanner s = new Scanner(tS);
-            s.skip("vn");
-            double x = s.nextDouble();
-            double y = s.nextDouble();
-            double z = s.nextDouble();
+        try{
+            if((tS.charAt(0) == 'v')&&(tS.charAt(1)=='n'))
+            {
+                //Scanner s = new Scanner(tS);
+                //s.skip("vn");
+                //double x = s.nextDouble();
+                //double y = s.nextDouble();
+                //double z = s.nextDouble();
             
             
-            return new Vertex(x,y,z);
-        }
+                double[] temp = getNextThreeDoubles(tS);
+                return new Vertex(temp[0],temp[1],temp[2]);
+                //return new Vertex(x,y,z);
+            }
         }
         catch (Exception e){}
         return null;
@@ -306,16 +323,19 @@ public class KinectCAD
     {
         try{if((tS.charAt(0) == 'v')&&(tS.charAt(1)=='t'))
         {
-            Scanner s = new Scanner(tS);
-            s.skip("vt");
-            double x = s.nextDouble();
-            double y = s.nextDouble();
+            //Scanner s = new Scanner(tS);
+            //s.skip("vt");
+            //double x = s.nextDouble();
+            //double y = s.nextDouble();
+            double[] temp = getNextTwoDoubles(tS);
             
             
-            return new Vertex(x,y,0);
+            return new Vertex(temp[0],temp[1],0);
         }
         }
-        catch (Exception e){}
+        catch (Exception e){
+            //Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, e);
+        }
         return null;
     }
     
@@ -405,5 +425,20 @@ public class KinectCAD
         }
         System.out.println("Material not matched: "+substring);
         return -1;
+    }
+    
+    static double[] getNextThreeDoubles(String string) {
+            String[] parsed = string.split(" +");
+            return new double[] { 
+                Double.parseDouble(parsed[1]),
+                Double.parseDouble(parsed[2]),
+                Double.parseDouble(parsed[3]) };
+    }
+    
+    static double[] getNextTwoDoubles(String string) {
+            String[] parsed = string.split(" +");
+            return new double[] { 
+                Double.parseDouble(parsed[1]),
+                Double.parseDouble(parsed[2])};
     }
 }
