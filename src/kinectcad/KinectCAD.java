@@ -22,6 +22,11 @@ public class KinectCAD
     public FloatBuffer lightAmb;
     public FloatBuffer lightDiff;
     public FloatBuffer lightPos;
+    double angleX = 0;
+    double angleY = 0;
+    double transX = 0;
+    double transY = 0;
+    double transZ = 10;
     
     public static final String filepath = "C:\\Users\\George\\Desktop\\kinectCadfiles\\";
     public final String file = "cube4.obj";
@@ -47,11 +52,7 @@ public class KinectCAD
         glEnable(GL_NORMALIZE);
         
         
-        double angleX = 0;
-        double angleY = 0;
-        double transX = 0;
-        double transY = 0;
-        double transZ = 500;
+        
 
 	glClearColor(0.0f,0.0f,0.0f,1.0f);
 
@@ -95,55 +96,67 @@ public class KinectCAD
 	    drawScene(angleX,angleY,new double[]{transX,transY,transZ},o);
                 
             double scale = 50; //50
-            double scaleT = 1;
-            double scaleZ = 100; //100\
+            double scaleT = 10;
+            double scaleZ = 10; //100\
             scale*=timer.getDelay();
             scaleT*=timer.getDelay();
             scaleZ*=timer.getDelay();
             angleY= angleY%360;
             angleX= angleX%360;
             
+            double tempX = 0;
+            double tempY = 0;
+            double tempZ = 0;
+            
             if(Keyboard.isKeyDown(Keyboard.KEY_LEFT))
-            {
-                angleY+=scale;                
-            }
-            if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT))
-            {
-                angleY-=scale;                
-            }
-            if(Keyboard.isKeyDown(Keyboard.KEY_UP))
             {
                 angleX+=scale;
             }
+            if(Keyboard.isKeyDown(Keyboard.KEY_RIGHT))
+            {
+                angleX-=scale;     
+            }
+            if(Keyboard.isKeyDown(Keyboard.KEY_UP))
+            {
+                
+                angleY+=scale;
+                if(angleY>90)
+                    angleY=90;
+            }
             if(Keyboard.isKeyDown(Keyboard.KEY_DOWN))
             {
-                angleX-=scale;             
+                angleY-=scale;  
+                if(angleY<-90)
+                    angleY=-90;        
             }
-            if(Keyboard.isKeyDown(Keyboard.KEY_W))
+            if(Keyboard.isKeyDown(Keyboard.KEY_SPACE))
             {
-                transY-=scaleT;                
+                tempY+=scaleT;                
             }
-            if(Keyboard.isKeyDown(Keyboard.KEY_S))
+            if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT))
             {
-                transY+=scaleT;                
+                tempY-=scaleT;                
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_A))
             {
-                transX+=scaleT;                
+                tempX-=scaleT;                
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_D))
             {
-                transX-=scaleT;                
+                tempX+=scaleT;                
             }
-            if(Keyboard.isKeyDown(Keyboard.KEY_Q))
+            if(Keyboard.isKeyDown(Keyboard.KEY_W))
             {
-                transZ+=scaleZ;                
+                tempZ+=scaleZ;                
             }
-            if(Keyboard.isKeyDown(Keyboard.KEY_E))
+            if(Keyboard.isKeyDown(Keyboard.KEY_S))
             {
-                transZ-=scaleZ;
+                tempZ-=scaleZ;
             }
-            Display.setTitle("FPS: " + String.valueOf(timer.fps) + " " + transX + " " + transY + " " + transZ);
+            
+            cameraCoordToAbsolute(tempX,tempY,tempZ,angleX,angleY);
+            
+            Display.setTitle("FPS: " + String.valueOf(timer.fps) + " " + angleX + " " + angleY);
 	    Display.update();
             timer.burnExcess();
 	}
@@ -156,11 +169,12 @@ public class KinectCAD
         
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Clear The Screen And The Depth Buffer
     glLoadIdentity();     
-    
-    glTranslated(trans[0],trans[1],(trans[2]/Math.abs(trans[2]))*-1*Math.pow(1.5,Math.abs(trans[2]*.02))*.1);
     	
-    glRotated(angleX,1,0,0);
-    glRotated(angleY,0,1,0);
+    glRotated(angleY,-1,0,0);
+    glRotated(angleX,0,-1,0);
+    glTranslated(-1*trans[0],-1*trans[1],-1*trans[2]);
+    
+    //glTranslated(trans[0],trans[1],(trans[2]/Math.abs(trans[2]))*-1*Math.pow(1.5,Math.abs(trans[2]*.02))*.1);
    
     int l = Arrays.length(o);
     for(int i =0; i<l;i++){
@@ -169,9 +183,9 @@ public class KinectCAD
     
     //glRotated(angleX,1,0,0);
     //glRotated(angleY,0,1,0);
-    //glTranslated(trans[0],trans[1],trans[2]+5);
     
     glLoadIdentity();
+    
     glFlush();
     }
     
@@ -452,5 +466,20 @@ public class KinectCAD
             return new double[] { 
                 Double.parseDouble(parsed[1]),
                 Double.parseDouble(parsed[2])};
+    }
+
+    private void cameraCoordToAbsolute(double tempX, double tempY, double tempZ, double angleX, double angleY) {
+        //Converts coords relative to a camera into absolute coords
+        
+        double rad = 2 * 3.141592653589793238462643383279502884 / 360;
+        
+        transX+= tempX * Math.cos(rad*angleX);
+        transX+= -1*tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*(90-angleX));
+        
+        transY+= tempY;
+        transY+= tempZ * Math.cos(rad*(90 - angleY));
+        
+        transZ+= -1*tempX * Math.cos(rad*(90-angleX));
+        transZ+= -1*tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*angleX);        
     }
 }
