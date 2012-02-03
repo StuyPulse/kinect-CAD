@@ -195,6 +195,7 @@ public final class Material {
     public void bindTexture()
     {
         if(texture == null){
+            glBindTexture(GL_TEXTURE_2D, 0);
             return;
         }
         texture.bind();

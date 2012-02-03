@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.ListIterator;
 import org.lwjgl.BufferUtils;
 
+
 public class KinectCAD
 {
     
@@ -85,7 +86,11 @@ public class KinectCAD
         
         
         long x = System.currentTimeMillis();
-        DrawObject[] o = new DrawObject[]{loadObj(filepath + file),loadObj(filepath + "cube3.obj")};
+        DrawObject temp = loadObj(filepath + "joebot.obj");
+        //
+        temp.offset(-75, -8, 50);
+        //DrawObject[] o = new DrawObject[]{loadObj(filepath + file),temp};
+        DrawObject[] o = new DrawObject[]{temp};
         System.out.println("Loaded in " + (System.currentTimeMillis()-x) + " milliseconds.");
 	//DrawObject o =null;
         Timer timer = new Timer(500);
@@ -285,17 +290,46 @@ public class KinectCAD
             if(tS.startsWith("usemtl")){
                 currMtl = matchMtl(tS.substring(7));
             }
-            int[] vertIndArray = parseFace(tS);
-                if(vertIndArray!=null)
-                {
-                    Vertex[] temp = new Vertex[]{vertArray.get(vertIndArray[0]-1),vertArray.get(vertIndArray[1]-1),vertArray.get(vertIndArray[2]-1)};
-                    Vertex[] texTemp = new Vertex[]{texArray.get(vertIndArray[3]-1),texArray.get(vertIndArray[4]-1),texArray.get(vertIndArray[5]-1)};
-                    Vertex[] normTemp = new Vertex[]{normArray.get(vertIndArray[6]-1),normArray.get(vertIndArray[7]-1),normArray.get(vertIndArray[8]-1)};
-                    Face f = new Face(temp,normTemp,currMtl,texTemp);
-                    //System.out.println("Face Added");
-                    faceArray.add(f);
-                
+            
+            Vertex[] vertTemp = null;
+            Vertex[] texTemp = null;
+            Vertex[] normTemp = null;
+            
+            int[][] vertIndArray = parseFace(tS);
+            if(vertIndArray!=null)
+            {
+                int l = Arrays.length(vertIndArray[0]);
+                if(vertIndArray[0]!=null){
+                    vertTemp = new Vertex[l];
+                    for(int j = 0; j < l;j++)
+                    {
+                        vertTemp[j] = vertArray.get(vertIndArray[0][j]-1);
+                    }
                 }
+                if(vertIndArray[1]!=null){
+                    texTemp = new Vertex[l];
+                    for(int j = 0; j < l;j++)
+                    {
+                        texTemp[j] = texArray.get(vertIndArray[1][j]-1);
+                    }
+                }
+                if(vertIndArray[2]!=null){
+                    normTemp = new Vertex[l];
+                    for(int j = 0; j < l;j++)
+                    {
+                        normTemp[j] = normArray.get(vertIndArray[2][j]-1);
+                    }
+                }
+                    //vertTemp = new Vertex[]{vertArray.get(vertIndArray[0][0]-1),vertArray.get(vertIndArray[0][1]-1),vertArray.get(vertIndArray[0][2]-1)};}
+                //if(vertIndArray[1]!=null){
+                //    texTemp = new Vertex[]{texArray.get(vertIndArray[1][0]-1),texArray.get(vertIndArray[1][1]-1),texArray.get(vertIndArray[1][2]-1)};}
+                //if(vertIndArray[2]!=null){
+                //    normTemp = new Vertex[]{normArray.get(vertIndArray[2][0]-1),normArray.get(vertIndArray[2][1]-1),normArray.get(vertIndArray[2][2]-1)};}
+                    
+                Face f = new Face(vertTemp,normTemp,currMtl,texTemp);
+                    //System.out.println("Face Added");
+                faceArray.add(f);       
+            }
         }
         s.close();
         Face[] fA = faceArray.toArray(new Face[0]);
@@ -363,27 +397,53 @@ public class KinectCAD
         return null;
     }
     
-    public int[] parseFace(String tS)
+    public int[][] parseFace(String tS)
     {
-        try{if((tS.charAt(0) == 'f'))
-        {
-            Scanner s = new Scanner(tS);
+        try{
+            if((tS.charAt(0) == 'f'))
+            {
+                //Scanner s = new Scanner(tS);
             
-            s.skip("f");
+                //s.skip("f");
             
-            s.useDelimiter(" |/");
-            int v1 = s.nextInt();
-            int vt1 = s.nextInt();
-            int vn1 = s.nextInt();
-            int v2 = s.nextInt();
-            int vt2 = s.nextInt();
-            int vn2 = s.nextInt();
-            int v3 = s.nextInt();
-            int vt3 = s.nextInt();
-            int vn3 = s.nextInt();
+                //s.useDelimiter(" |/");
+                //int v1 = s.nextInt();
+                //int vt1 = s.nextInt();
+                //int vn1 = s.nextInt();
+                //int v2 = s.nextInt();
+                //int vt2 = s.nextInt();
+                //int vn2 = s.nextInt();
+                //int v3 = s.nextInt();
+                //int vt3 = s.nextInt();
+                //int vn3 = s.nextInt();
             
-            return new int[] {v1,v2,v3,vt1,vt2,vt3,vn1,vn2,vn3};
-        }}
+                //return new int[] {v1,v2,v3,vt1,vt2,vt3,vn1,vn2,vn3};
+                String[] vertIndGroups = tS.split(" ");
+                int l = Arrays.length(vertIndGroups);
+                int[] vertArray = new int[l-1];
+                int[] normArray = new int[l-1];
+                int[] texArray = new int[l-1];
+                for(int i =1;i<l;i++)
+                {
+                    String[] temp = vertIndGroups[i].split("/");
+                    int tl = Arrays.length(temp);
+                    vertArray[i-1] = Integer.parseInt(temp[0]);
+                    if(tl>1&&!"".equals(temp[1])&&texArray!=null)
+                    {
+                        texArray[i-1] = Integer.parseInt(temp[1]);
+                    }
+                    else
+                        texArray=null;
+                    if(tl>2&&normArray!=null)
+                    {
+                        normArray[i-1] = Integer.parseInt(temp[2]);
+                    }
+                    else
+                        normArray=null;
+                }
+                return new int[][]{vertArray,texArray,normArray};
+            }
+        }
         catch (Exception e){}
         return null;
     }

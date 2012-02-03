@@ -59,10 +59,14 @@ public class Face {
         
         for(int i = 0;i<Array.getLength(vertices);i++)
         {
+            //int x;
+            //if(i == 3)
+            //    x = 1;
             if(normal!=null)
             glNormal3d(normal[i].x, normal[i].y, normal[i].z);
-            if(tex != null);
+            if(tex != null){
             glTexCoord2d(tex[i].x, tex[i].y);
+            }
             glVertex3d(vertices[i].x, vertices[i].y, vertices[i].z);
         }
         glEnd();
