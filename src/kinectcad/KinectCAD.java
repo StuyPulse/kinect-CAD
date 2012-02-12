@@ -1,7 +1,7 @@
 
 package kinectcad;
 
-import com.sun.squawk.util.Arrays;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lwjgl.input.Keyboard;
@@ -10,16 +10,20 @@ import org.lwjgl.opengl.Display;
 import org.lwjgl.opengl.DisplayMode;
 import static org.lwjgl.opengl.GL11.*;
 import java.io.*;
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.util.Scanner;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import org.lwjgl.BufferUtils;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 
 
 public class KinectCAD
 {
-    
     public FloatBuffer lightAmb;
     public FloatBuffer lightDiff;
     public FloatBuffer lightPos;
@@ -28,9 +32,12 @@ public class KinectCAD
     double transX = 0;
     double transY = 0;
     double transZ = 10;
+    public KinectClient sock;
     
     public static final String filepath = "C:\\Users\\George\\Desktop\\kinectCadfiles\\";
-    public final String file = "cube4.obj";
+    public static final String file = "cube4.obj";
+    public static final String altFile = "cube2.obj";
+    public static final boolean firstPerson = false;
     
     
     public static void main(String[] args)
@@ -42,6 +49,20 @@ public class KinectCAD
     }
     
     public void start() {
+        sock = new KinectClient();
+        try {
+           sock.connect(new InetSocketAddress(Inet4Address.getLocalHost(), 20736));
+        } catch (UnknownHostException ex) {
+            Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        if(!firstPerson){
+            transZ = 0;
+        }
+        //BitTester.init();
+        //for(int i = 0; i<100000;i++)
+        //BitTester.Fabricate();
+        
         try {
 	    Display.setDisplayMode(new DisplayMode(800,600));
 	    Display.create();
@@ -52,12 +73,7 @@ public class KinectCAD
         glEnable(GL_DEPTH_TEST); 
         glEnable(GL_NORMALIZE);
         
-        
-        
-
 	glClearColor(0.0f,0.0f,0.0f,1.0f);
-
-        
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         // fovy, aspect ratio, zNear, zFar
@@ -86,11 +102,19 @@ public class KinectCAD
         
         
         long x = System.currentTimeMillis();
-        DrawObject temp = loadObj(filepath + "joebot.obj");
-        //
-        temp.offset(-75, -8, 50);
-        //DrawObject[] o = new DrawObject[]{loadObj(filepath + file),temp};
-        DrawObject[] o = new DrawObject[]{temp};
+        
+        //temp.offset(-75, -8, 50);
+        
+        DrawObject main = loadObj(filepath + file);
+        DrawObject[] o;
+        if(altFile!="")
+        {
+            DrawObject alt = loadObj(filepath + altFile);
+            o = new DrawObject[]{main,alt};
+        }
+        else{
+            o = new DrawObject[]{main};
+        }
         System.out.println("Loaded in " + (System.currentTimeMillis()-x) + " milliseconds.");
 	//DrawObject o =null;
         Timer timer = new Timer(500);
@@ -125,31 +149,31 @@ public class KinectCAD
             {
                 
                 angleY+=scale;
-                if(angleY>90)
-                    angleY=90;
             }
             if(Keyboard.isKeyDown(Keyboard.KEY_DOWN))
             {
-                angleY-=scale;  
-                if(angleY<-90)
-                    angleY=-90;        
+                angleY-=scale;      
             }
-            if(Keyboard.isKeyDown(Keyboard.KEY_SPACE))
+            if(firstPerson)
             {
-                tempY+=scaleT;                
+                if(Keyboard.isKeyDown(Keyboard.KEY_SPACE))
+                {
+                    tempY-=scaleT;                
+                }
+                if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT))
+                {
+                        tempY+=scaleT;                
+                }
+                if(Keyboard.isKeyDown(Keyboard.KEY_A))
+                {
+                    tempX+=scaleT;                
+                }
+                if(Keyboard.isKeyDown(Keyboard.KEY_D))
+                {
+                    tempX-=scaleT;                
+                }
             }
-            if(Keyboard.isKeyDown(Keyboard.KEY_LSHIFT))
-            {
-                tempY-=scaleT;                
-            }
-            if(Keyboard.isKeyDown(Keyboard.KEY_A))
-            {
-                tempX-=scaleT;                
-            }
-            if(Keyboard.isKeyDown(Keyboard.KEY_D))
-            {
-                tempX+=scaleT;                
-            }
+            
             if(Keyboard.isKeyDown(Keyboard.KEY_W))
             {
                 tempZ+=scaleZ;                
@@ -159,35 +183,59 @@ public class KinectCAD
                 tempZ-=scaleZ;
             }
             
-            cameraCoordToAbsolute(tempX,tempY,tempZ,angleX,angleY);
+            if(firstPerson){
+                cameraCoordToAbsolute(tempX,tempY,tempZ,angleX,angleY);   //FPS STYLE
+            }
+            else{
+                transX+=tempX;  //ORBIT STYLE
+                transY+=tempY;
+                transZ+=tempZ;
+            }
             
             Display.setTitle("FPS: " + String.valueOf(timer.fps) + " " + angleX + " " + angleY);
 	    Display.update();
+            
+            float[] kinectIn = sock.getInput();
+            if(sock.isGrabbed){
+                angleX+=20*scale*kinectIn[0];
+                angleY+=20*scale*kinectIn[1];
+            }
+            
+            if(angleY<-90)
+                angleY=-90;    
+            if(angleY>90)
+                angleY=90;
+            
+            
             timer.burnExcess();
-	}
+        }
 		
 	Display.destroy();
     }
 	
+    
+    
     public void drawScene(double angleX,double angleY,double[] trans ,DrawObject[] o)
     {
         
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Clear The Screen And The Depth Buffer
     glLoadIdentity();     
     	
-    glRotated(angleY,-1,0,0);
-    glRotated(angleX,0,-1,0);
-    glTranslated(-1*trans[0],-1*trans[1],-1*trans[2]);
-    
-    //glTranslated(trans[0],trans[1],(trans[2]/Math.abs(trans[2]))*-1*Math.pow(1.5,Math.abs(trans[2]*.02))*.1);
+    if(firstPerson){
+        glRotated(angleY,-1,0,0);
+        glRotated(angleX,0,-1,0);
+        glTranslated(-1*trans[0],-1*trans[1],-1*trans[2]);
+    }
+    else{
+        glTranslated(trans[0],trans[1],-6+trans[2]);
+        glRotated(angleY,1,0,0);
+        glRotated(angleX,0,1,0);
+    }
    
-    int l = Arrays.length(o);
+    int l = o.length;
     for(int i =0; i<l;i++){
     o[i].draw();
     }
-    
-    //glRotated(angleX,1,0,0);
-    //glRotated(angleY,0,1,0);
     
     glLoadIdentity();
     
@@ -298,7 +346,7 @@ public class KinectCAD
             int[][] vertIndArray = parseFace(tS);
             if(vertIndArray!=null)
             {
-                int l = Arrays.length(vertIndArray[0]);
+                int l =vertIndArray[0].length;
                 if(vertIndArray[0]!=null){
                     vertTemp = new Vertex[l];
                     for(int j = 0; j < l;j++)
@@ -419,14 +467,14 @@ public class KinectCAD
             
                 //return new int[] {v1,v2,v3,vt1,vt2,vt3,vn1,vn2,vn3};
                 String[] vertIndGroups = tS.split(" ");
-                int l = Arrays.length(vertIndGroups);
+                int l = vertIndGroups.length;
                 int[] vertArray = new int[l-1];
                 int[] normArray = new int[l-1];
                 int[] texArray = new int[l-1];
                 for(int i =1;i<l;i++)
                 {
                     String[] temp = vertIndGroups[i].split("/");
-                    int tl = Arrays.length(temp);
+                    int tl = temp.length;
                     vertArray[i-1] = Integer.parseInt(temp[0]);
                     if(tl>1&&!"".equals(temp[1])&&texArray!=null)
                     {
@@ -533,13 +581,13 @@ public class KinectCAD
         
         double rad = 2 * 3.141592653589793238462643383279502884 / 360;
         
-        transX+= tempX * Math.cos(rad*angleX);
-        transX+= -1*tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*(90-angleX));
+        transX+= -1*tempX * Math.cos(rad*angleX);
+        transX+= tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*(90-angleX));
         
-        transY+= tempY;
-        transY+= tempZ * Math.cos(rad*(90 - angleY));
+        transY+= -1*tempY;
+        transY+= -1*tempZ * Math.cos(rad*(90 - angleY));
         
-        transZ+= -1*tempX * Math.cos(rad*(90-angleX));
-        transZ+= -1*tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*angleX);        
+        transZ+= tempX * Math.cos(rad*(90-angleX));
+        transZ+= tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*angleX);        
     }
 }
