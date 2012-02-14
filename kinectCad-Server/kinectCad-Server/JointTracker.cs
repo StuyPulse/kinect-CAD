@@ -57,7 +57,7 @@ namespace WindowsFormsApplication1
         {
             if (framesBack > BUFFERSIZE - BUFFERSTEP || framesBack > currIndex)
             {
-                Console.WriteLine("not enough position data");
+                //Console.WriteLine("not enough position data");
                 return zeroVec();
             }
 

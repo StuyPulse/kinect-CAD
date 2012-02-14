@@ -38,6 +38,10 @@ public class KinectCAD
     public static final String file = "cube4.obj";
     public static final String altFile = "cube2.obj";
     public static final boolean firstPerson = false;
+    public static final boolean cameraInertia = true;
+    public static final float xTurnVel = 0;
+    public static final float yTurnVel = 0;
+    public static final float inertia = 0;
     
     
     public static void main(String[] args)

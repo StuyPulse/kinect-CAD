@@ -25,6 +25,7 @@ namespace WindowsFormsApplication1
         static int xTracker, yTracker;
         static Socket listenS, clientS;
         static bool socketOpen = false;
+        static int currSkelly;
 
         
 
@@ -92,12 +93,30 @@ namespace WindowsFormsApplication1
             //Console.WriteLine(skellies.Skeletons[0].TrackingState.ToString());
             SkeletonData[] skelly = skellies.Skeletons;
             JointsCollection j;
-            if (
-                skelly.Length >= 1
-                && (skelly[0].TrackingState == SkeletonTrackingState.PositionOnly || skelly[0].TrackingState == SkeletonTrackingState.Tracked)
-                )
+            bool isReady = false;
+            if (skelly[currSkelly].TrackingState == SkeletonTrackingState.PositionOnly || skelly[currSkelly].TrackingState == SkeletonTrackingState.Tracked)
             {
-                j = skelly[0].Joints;
+                isReady = true;
+            }
+            else
+            {
+                Console.WriteLine("Seeking target...");
+                for (int i = 0; i < 6; i++)
+                {
+                    currSkelly++;
+                    currSkelly = i;
+                    if (skelly[currSkelly].TrackingState == SkeletonTrackingState.PositionOnly || skelly[0].TrackingState == SkeletonTrackingState.Tracked)
+                    {
+                        isReady = true;
+                        Console.WriteLine("Target Acquired");
+                        break;
+                    }
+                }
+            }
+
+            if(isReady)
+            {
+                j = skelly[currSkelly].Joints;
                 Joint h;
                 float xd, yd;
 
@@ -141,7 +160,6 @@ namespace WindowsFormsApplication1
 
                 sendData();
             }
-            else Console.WriteLine("ARP");
             f.draw(b);
         }
 
