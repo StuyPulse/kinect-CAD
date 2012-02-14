@@ -49,7 +49,7 @@ public class KinectCAD
     }
     
     public void start() {
-        sock = new KinectClient();
+        sock = new KinectClient(10, 0.7f);
         try {
            sock.connect(new InetSocketAddress(Inet4Address.getLocalHost(), 20736));
         } catch (UnknownHostException ex) {
@@ -107,7 +107,7 @@ public class KinectCAD
         
         DrawObject main = loadObj(filepath + file);
         DrawObject[] o;
-        if(altFile!="")
+        if(!"".equals(altFile))
         {
             DrawObject alt = loadObj(filepath + altFile);
             o = new DrawObject[]{main,alt};
@@ -196,9 +196,17 @@ public class KinectCAD
 	    Display.update();
             
             float[] kinectIn = sock.getInput();
+            //if(kinectIn[0]>0||kinectIn[0]<0){
+            //    System.out.println(kinectIn[0]*100);
+            //}
+            //System.out.println(sock.isGrabbed);
             if(sock.isGrabbed){
-                angleX+=20*scale*kinectIn[0];
-                angleY+=20*scale*kinectIn[1];
+                angleX+=50*scale*kinectIn[0];
+                angleY+=55*scale*kinectIn[1];
+            }
+            else
+            {
+                sock.flushSmoothData();
             }
             
             if(angleY<-90)

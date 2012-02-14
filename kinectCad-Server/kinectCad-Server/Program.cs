@@ -24,6 +24,7 @@ namespace WindowsFormsApplication1
         static JointTracker hand, elbow;
         static int xTracker, yTracker;
         static Socket listenS, clientS;
+        static bool socketOpen = false;
 
         
 
@@ -67,6 +68,7 @@ namespace WindowsFormsApplication1
             {
                 clientS = listenS.EndAccept(async);
                 Console.WriteLine("Call Accepted");
+                socketOpen = true;
             }
 
             catch (Exception e)
@@ -169,8 +171,8 @@ namespace WindowsFormsApplication1
 
                 int handX, handZ;
 
-                handX = (int)(hand.averageVel(10,.8f).X*1000000);
-                handZ = (int)(hand.averageVel(10,.8f).Z*1000000);
+                handX = (int)(hand.lastDistance().X*1000000);
+                handZ = (int)(hand.lastDistance().Z*1000000);
                 //Console.WriteLine(handX);
                 byte[] temp = new byte[9];
                 temp[0] = 0;
@@ -185,7 +187,20 @@ namespace WindowsFormsApplication1
                 temp[7] = (byte)(handZ >> 16);
                 temp[8] = (byte)(handZ >> 24);
                 //Console.WriteLine(getBits(temp[4])+getBits(temp[3])+getBits(temp[2])+getBits(temp[1])+handX);
-                clientS.Send(temp);
+                if(socketOpen)
+                {
+                    try
+                    {
+                        clientS.Send(temp);
+                    }
+                    catch (SocketException se)
+                    {
+                        socketOpen = false;
+                        //listenS.Bind(new IPEndPoint(IPAddress.Any, 20736));
+                        listenS.Listen(4);
+                        listenS.BeginAccept(new AsyncCallback(OnCallAccept), null);
+                    }
+                }
             }
 
         }

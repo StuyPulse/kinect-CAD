@@ -20,11 +20,26 @@ public class KinectClient {
     BufferedInputStream dIn;
     BufferedOutputStream dOut;
     public boolean isGrabbed;
+    boolean smoothEnabled = false;
+    public int framesToSmooth;
+    public float decayRate;
+    KinectSmoother ks;
+    public boolean hasNew = false;
     
     public KinectClient()
     {
             s = new Socket();
             isGrabbed = false;
+    }
+    
+    public KinectClient(int f, float d)
+    {
+            s = new Socket();
+            isGrabbed = false;
+            framesToSmooth = f;
+            decayRate = d;
+            smoothEnabled = true;
+            ks = new KinectSmoother();
     }
     
     public void connect(InetSocketAddress ip)
@@ -66,8 +81,8 @@ public class KinectClient {
             //System.out.println(getXCoord(temp));
             x += getXCoord(temp);
             y += getYCoord(temp);
-            System.out.println(printBits(temp[0]));
-            System.out.println(printBits((byte)(temp[0]|0x7f))+" "+ printBits((byte)0xFF));
+            //System.out.println(printBits(temp[0]));
+            //System.out.println(printBits((byte)(temp[0]|0x7f))+" "+ printBits((byte)0xFF));
             if((temp[0]&0x80)==0x80)
             {
                 pro++;
@@ -76,9 +91,30 @@ public class KinectClient {
             {
                 con++;
             }
+            hasNew = true;            
         }
+        if(pro+con!=0)
         isGrabbed = pro>=con;
-        return new float[]{x,y};
+        
+        if(smoothEnabled&&hasNew)
+        {
+            hasNew = false;
+            //float tempFloat = ks.averageVel(framesToSmooth, decayRate).xyArray()[0];
+            //if(tempFloat!=0f)
+            //System.out.println(tempFloat*100);
+            ks.recPoint(new Vector(x,y));
+            float[] tempf =  ks.smoothDist(framesToSmooth, decayRate).xyArray();
+            return tempf;
+        }
+        else
+        {
+            return new float[]{x,y};
+        }
+    }
+    
+    public void flushSmoothData()
+    {
+        ks.flushSmoothData();
     }
     
     static String printBits(byte x)
@@ -168,5 +204,4 @@ public class KinectClient {
             Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE,"Sockets not closin\'",ex);
         }
     }
-    
 }
