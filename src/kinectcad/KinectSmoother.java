@@ -107,14 +107,14 @@ public class KinectSmoother {
                 //if(!vs[currIndex - 1].equals(zeroVec()))
                 //vs[currIndex - i].print();
                 sum = vecAdd(sum, vecMult(ratio, vs[currIndex - i]));
-                System.out.println(vs[currIndex-i].X + " \t!" + sum.X + " r:"+ ratio+" a:"+averageFactor);
+                //System.out.println(vs[currIndex-i].X + " \t!" + sum.X + " r:"+ ratio+" a:"+averageFactor);
                 //sum.print();
                 averageFactor += ratio;
                 ratio *= decayPercent;
             }
 
-            System.out.print("*");
-            vecMult(1 / averageFactor, sum).print();
+            //System.out.print("*");
+            //vecMult(1 / averageFactor, sum).print();
             return vecMult(1 / averageFactor, sum);
 
     }

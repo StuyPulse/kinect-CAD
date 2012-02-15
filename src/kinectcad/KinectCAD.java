@@ -11,14 +11,11 @@ import org.lwjgl.opengl.DisplayMode;
 import static org.lwjgl.opengl.GL11.*;
 import java.io.*;
 import java.net.Inet4Address;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.util.Scanner;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.ListIterator;
 import org.lwjgl.BufferUtils;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 
@@ -27,21 +24,34 @@ public class KinectCAD
     public FloatBuffer lightAmb;
     public FloatBuffer lightDiff;
     public FloatBuffer lightPos;
+    
+    double turnSpeed = 50; //50
+    double transSpeed = 10;
+    double depthSpeed = 10; //100
+    
     double angleX = 0;
     double angleY = 0;
     double transX = 0;
     double transY = 0;
     double transZ = 10;
     public KinectClient sock;
+    public PhysicsSim phys;
     
     public static final String filepath = "C:\\Users\\George\\Desktop\\kinectCadfiles\\";
     public static final String file = "cube4.obj";
     public static final String altFile = "cube2.obj";
     public static final boolean firstPerson = false;
     public static final boolean cameraInertia = true;
-    public static final float xTurnVel = 0;
-    public static final float yTurnVel = 0;
-    public static final float inertia = 0;
+    
+    public static float xTurnVel = 0;
+    public static float yTurnVel = 0;
+    
+    public static final float inertia = .1f;
+    public static final float maxSpeed = 60;
+    public static final float unGrabbedDecayRate = .5f;
+    public static final float springConst = 4f;
+    public static final float grabFriction = 10f;
+    public static final float spinSpeed = 10f;
     
     
     public static void main(String[] args)
@@ -53,6 +63,7 @@ public class KinectCAD
     }
     
     public void start() {
+        phys = new PhysicsSim(inertia, unGrabbedDecayRate, springConst, spinSpeed,grabFriction);
         sock = new KinectClient(10, 0.7f);
         try {
            sock.connect(new InetSocketAddress(Inet4Address.getLocalHost(), 20736));
@@ -127,10 +138,11 @@ public class KinectCAD
 	
             
 	    drawScene(angleX,angleY,new double[]{transX,transY,transZ},o);
-                
-            double scale = 50; //50
-            double scaleT = 10;
-            double scaleZ = 10; //100\
+            
+            double scale = turnSpeed; //50
+            double scaleT = transSpeed;
+            double scaleZ = depthSpeed; //100
+            
             scale*=timer.getDelay();
             scaleT*=timer.getDelay();
             scaleZ*=timer.getDelay();
@@ -141,6 +153,8 @@ public class KinectCAD
             double tempY = 0;
             double tempZ = 0;
             
+            
+            //System.out.println(angleX);
             if(Keyboard.isKeyDown(Keyboard.KEY_LEFT))
             {
                 angleX+=scale;
@@ -196,7 +210,7 @@ public class KinectCAD
                 transZ+=tempZ;
             }
             
-            Display.setTitle("FPS: " + String.valueOf(timer.fps) + " " + angleX + " " + angleY);
+            Display.setTitle("FPS: " + String.valueOf(timer.fps));
 	    Display.update();
             
             float[] kinectIn = sock.getInput();
@@ -204,13 +218,47 @@ public class KinectCAD
             //    System.out.println(kinectIn[0]*100);
             //}
             //System.out.println(sock.isGrabbed);
-            if(sock.isGrabbed){
-                angleX+=50*scale*kinectIn[0];
-                angleY+=55*scale*kinectIn[1];
+            if(cameraInertia)
+            {
+                phys.update(kinectIn[0], kinectIn[1], sock.isGrabbed, (float)timer.getDelay());
+                angleX = phys.angleX;
+                angleY = phys.angleY;
+//                float drag;
+//                double delay = timer.getDelay();
+//                double tempScale = 1000;
+//                
+//                if(sock.isGrabbed)
+//                {
+//                    drag = grabbedDecayRate;
+//                    xTurnVel += (float)(kinectIn[0]/inertia*delay*tempScale);
+//                    yTurnVel += (float)(kinectIn[1]/inertia*delay*tempScale);
+//                }
+//                else
+//                {
+//                    drag = unGrabbedDecayRate;
+//                }
+//                                
+//                xTurnVel -= drag*xTurnVel*delay;
+//                yTurnVel -= drag*yTurnVel*delay;
+//                xTurnVel = Math.min(maxSpeed, Math.max(xTurnVel, -1*maxSpeed));
+//                yTurnVel = Math.min(maxSpeed, Math.max(yTurnVel, -1*maxSpeed));
+//                
+//                System.out.println("Turn: " + xTurnVel);
+//                System.out.println("Angle: " +angleX);
+//                
+//                angleX += xTurnVel*delay;
+//                angleY += yTurnVel*delay;                
             }
             else
             {
-                sock.flushSmoothData();
+                if(sock.isGrabbed){
+                    angleX+=50*scale*kinectIn[0];
+                    angleY+=55*scale*kinectIn[1];
+                }
+                else
+                {
+                    sock.flushSmoothData();
+                }
             }
             
             if(angleY<-90)
