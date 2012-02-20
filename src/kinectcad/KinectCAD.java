@@ -39,18 +39,20 @@ public class KinectCAD
     
     public static final String filepath = "C:\\Users\\George\\Desktop\\kinectCadfiles\\";
     public static final String file = "cube4.obj";
-    public static final String altFile = "cube2.obj";
+    public static final String altFile = "bench.obj";
     public static final boolean firstPerson = false;
     public static final boolean cameraInertia = true;
+    public static final boolean loadKinect = false;
+    public static final boolean limitAngleTo90 = false;
+    public static final boolean is3D = true;
     
     public static float xTurnVel = 0;
     public static float yTurnVel = 0;
     
     public static final float inertia = .1f;
-    public static final float maxSpeed = 60;
     public static final float unGrabbedDecayRate = .5f;
     public static final float springConst = 4f;
-    public static final float grabFriction = 10f;
+    public static final float grabFriction = 8f;
     public static final float spinSpeed = 10f;
     
     
@@ -62,13 +64,16 @@ public class KinectCAD
        
     }
     
-    public void start() {
+    public void start()
+    {
         phys = new PhysicsSim(inertia, unGrabbedDecayRate, springConst, spinSpeed,grabFriction);
-        sock = new KinectClient(10, 0.7f);
-        try {
-           sock.connect(new InetSocketAddress(Inet4Address.getLocalHost(), 20736));
-        } catch (UnknownHostException ex) {
-            Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
+        if(loadKinect){
+            sock = new KinectClient(10, 0.7f);
+            try {
+               sock.connect(new InetSocketAddress(Inet4Address.getLocalHost(), 20736));
+            } catch (UnknownHostException ex) {
+                Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
         
         if(!firstPerson){
@@ -202,7 +207,10 @@ public class KinectCAD
             }
             
             if(firstPerson){
-                cameraCoordToAbsolute(tempX,tempY,tempZ,angleX,angleY);   //FPS STYLE
+                double[] temp = cameraCoordToAbsolute(tempX,tempY,tempZ,angleX,angleY);   //FPS STYLE
+                transX+=temp[0];
+                transY+=temp[1];
+                transZ+=temp[2];
             }
             else{
                 transX+=tempX;  //ORBIT STYLE
@@ -213,58 +221,34 @@ public class KinectCAD
             Display.setTitle("FPS: " + String.valueOf(timer.fps));
 	    Display.update();
             
-            float[] kinectIn = sock.getInput();
-            //if(kinectIn[0]>0||kinectIn[0]<0){
-            //    System.out.println(kinectIn[0]*100);
-            //}
-            //System.out.println(sock.isGrabbed);
-            if(cameraInertia)
-            {
-                phys.update(kinectIn[0], kinectIn[1], sock.isGrabbed, (float)timer.getDelay());
-                angleX = phys.angleX;
-                angleY = phys.angleY;
-//                float drag;
-//                double delay = timer.getDelay();
-//                double tempScale = 1000;
-//                
-//                if(sock.isGrabbed)
-//                {
-//                    drag = grabbedDecayRate;
-//                    xTurnVel += (float)(kinectIn[0]/inertia*delay*tempScale);
-//                    yTurnVel += (float)(kinectIn[1]/inertia*delay*tempScale);
-//                }
-//                else
-//                {
-//                    drag = unGrabbedDecayRate;
-//                }
-//                                
-//                xTurnVel -= drag*xTurnVel*delay;
-//                yTurnVel -= drag*yTurnVel*delay;
-//                xTurnVel = Math.min(maxSpeed, Math.max(xTurnVel, -1*maxSpeed));
-//                yTurnVel = Math.min(maxSpeed, Math.max(yTurnVel, -1*maxSpeed));
-//                
-//                System.out.println("Turn: " + xTurnVel);
-//                System.out.println("Angle: " +angleX);
-//                
-//                angleX += xTurnVel*delay;
-//                angleY += yTurnVel*delay;                
-            }
-            else
-            {
-                if(sock.isGrabbed){
-                    angleX+=50*scale*kinectIn[0];
-                    angleY+=55*scale*kinectIn[1];
+            
+            if(loadKinect){
+                float[] kinectIn = sock.getInput();
+                if(cameraInertia)
+                {
+                    phys.update(kinectIn[0], kinectIn[1], sock.isGrabbed, (float)timer.getDelay());
+                    angleX = phys.angleX;
+                    angleY = phys.angleY;           
                 }
                 else
                 {
-                    sock.flushSmoothData();
+                    if(sock.isGrabbed){
+                        angleX+=50*scale*kinectIn[0];
+                        angleY+=55*scale*kinectIn[1];
+                    }
+                    else
+                    {
+                        sock.flushSmoothData();
+                    }
                 }
             }
             
-            if(angleY<-90)
-                angleY=-90;    
-            if(angleY>90)
-                angleY=90;
+            if(limitAngleTo90){
+                if(angleY<-90)
+                    angleY=-90;    
+                if(angleY>90)
+                    angleY=90;
+            }
             
             
             timer.burnExcess();
@@ -272,19 +256,18 @@ public class KinectCAD
 		
 	Display.destroy();
     }
-	
-    
     
     public void drawScene(double angleX,double angleY,double[] trans ,DrawObject[] o)
     {
-        
+    if(is3D)
+    glColorMask(true, false, false, false);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Clear The Screen And The Depth Buffer
     glLoadIdentity();     
     	
     if(firstPerson){
         glRotated(angleY,-1,0,0);
         glRotated(angleX,0,-1,0);
-        glTranslated(-1*trans[0],-1*trans[1],-1*trans[2]);
+        glTranslated(trans[0],trans[1],trans[2]);
     }
     else{
         glTranslated(trans[0],trans[1],-6+trans[2]);
@@ -297,7 +280,35 @@ public class KinectCAD
     o[i].draw();
     }
     
-    glLoadIdentity();
+         
+    	
+    if(is3D){
+        
+        glColorMask(false, true, true, false);
+        glClear(GL_DEPTH_BUFFER_BIT);  
+        glLoadIdentity();
+        
+        if(firstPerson){
+            glRotated(angleY,-1,0,0);
+            glRotated(angleX,0,-1,0);
+            glTranslated(-1*trans[0],-1*trans[1],-1*trans[2]);
+        }
+        else{
+            double[] temp = cameraCoordToAbsoluteAllAxes(.05, 0, 0, angleX, angleY);
+
+            glTranslated(trans[0],trans[1],-6+trans[2]);
+            glRotated(angleY,1,0,0);
+            glRotated(angleX,0,1,0);
+            glTranslated(temp[0],temp[1],temp[2]);
+            glRotated(-2,0 , 1, 0);
+        }
+
+        for(int i =0; i<l;i++){
+        o[i].draw();
+        }
+
+        glLoadIdentity();
+    }
     
     glFlush();
     }
@@ -556,8 +567,6 @@ public class KinectCAD
         return null;
     }
     
-    
-    
     public void drawCube()
     {
         glBegin(GL_QUADS);
@@ -636,18 +645,38 @@ public class KinectCAD
                 Double.parseDouble(parsed[2])};
     }
 
-    private void cameraCoordToAbsolute(double tempX, double tempY, double tempZ, double angleX, double angleY) {
+    private double[] cameraCoordToAbsolute(double tempX, double tempY, double tempZ, double angleX, double angleY) {
         //Converts coords relative to a camera into absolute coords
         
         double rad = 2 * 3.141592653589793238462643383279502884 / 360;
+        double[] temp= new double[3];
+        temp[0]+= -1*tempX * Math.cos(rad*angleX);
+        temp[0]+= tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*(90-angleX));
         
-        transX+= -1*tempX * Math.cos(rad*angleX);
-        transX+= tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*(90-angleX));
+        temp[1]+= -1*tempY;
+        temp[1]+= -1*tempZ * Math.cos(rad*(90 - angleY));
         
-        transY+= -1*tempY;
-        transY+= -1*tempZ * Math.cos(rad*(90 - angleY));
+        temp[2]+= tempX * Math.cos(rad*(90-angleX));
+        temp[2]+= tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*angleX);   
+        return temp;
+    }
+    
+    private double[] cameraCoordToAbsoluteAllAxes(double tempX, double tempY, double tempZ, double angleX, double angleY) {
+        //Converts coords relative to a camera into absolute coords
         
-        transZ+= tempX * Math.cos(rad*(90-angleX));
-        transZ+= tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*angleX);        
+        double rad = 2 * 3.141592653589793238462643383279502884 / 360;
+        double[] temp= new double[3];
+        temp[0]+= -1*tempX * Math.cos(rad*angleX);
+        temp[0]+= -1*tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*(90-angleX));
+        temp[0]+= tempY * Math.cos(rad*(90+angleY)) * Math.cos(rad*(90-angleX));
+        
+        temp[1]+= tempY * Math.sin(rad*(angleY-90));
+        temp[1]+= tempZ * Math.sin(rad*(angleY));
+        
+        temp[2]+= -1*tempX * Math.cos(rad*(90-angleX));
+        temp[2]+= tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*angleX);   
+        temp[2]+= tempY * Math.cos(rad*(90+angleY)) * Math.cos(rad*(angleX));
+        
+        return temp;
     }
 }
