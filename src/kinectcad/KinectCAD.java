@@ -37,31 +37,83 @@ public class KinectCAD
     public KinectClient sock;
     public PhysicsSim phys;
     
-    public static final String filepath = "C:\\Users\\George\\Desktop\\kinectCadfiles\\";
-    public static final String file = "cube4.obj";
-    public static final String altFile = "bench.obj";
-    public static final boolean firstPerson = false;
-    public static final boolean cameraInertia = true;
-    public static final boolean loadKinect = false;
-    public static final boolean limitAngleTo90 = false;
-    public static final boolean is3D = true;
+    public static String filepath;
+    public static String[] files = new String[]{"cube4.obj","joebot.obj"};
+    public static boolean firstPerson = false;
+    public static boolean cameraInertia = false;
+    public static boolean loadKinect = false;
+    public static boolean limitAngleTo90 = false;
+    public static boolean is3D = false;
     
     public static float xTurnVel = 0;
     public static float yTurnVel = 0;
     
-    public static final float inertia = .1f;
-    public static final float unGrabbedDecayRate = .5f;
-    public static final float springConst = 4f;
-    public static final float grabFriction = 8f;
-    public static final float spinSpeed = 10f;
+    public static float inertia = .1f;
+    public static float unGrabbedDecayRate = .5f;
+    public static float springConst = 4f;
+    public static float grabFriction = 8f;
+    public static float spinSpeed = 10f;
     
     
     public static void main(String[] args)
     {
-        KinectCAD mainDerp = new KinectCAD();
+        //System.out.println(System.getProperties().stringPropertyNames());
+        String os = System.getProperty("os.name");
+        if(os.toLowerCase().contains("windows"))
+            os = "windows";
         
+        System.setProperty("org.lwjgl.librarypath",System.getProperty("user.dir")+System.getProperty("file.separator")+"native"+System.getProperty("file.separator")+os);
+        loadArgs(args);  
+        KinectCAD mainDerp = new KinectCAD();      
         mainDerp.start();
-       
+    }
+    
+    public static void loadArgs(String[] args)
+    {
+        filepath = System.getProperty("user.dir")+"\\models\\";
+        ArrayList<String> fileArray = new ArrayList<String>(0);
+        for(int i = 0;i<args.length;i++)
+        {
+            String temp = args[i];
+            if(temp.equals("-k"))
+                loadKinect = true;
+            else if(temp.startsWith("-l:"))
+                fileArray.add(temp.substring(3));
+            else if(temp.startsWith("-p:"))
+                filepath = temp.substring(3);
+            else if(temp.equals("-i"))
+                cameraInertia = false;
+            else if(temp.equals("-f"))
+                firstPerson = true;
+            else if(temp.equals("-d"))
+                is3D = true;
+            else if(temp.equals("-?"))
+            {
+                printHelp();
+                System.exit(0);
+            }
+            else
+            {
+                System.out.println("Command " + temp + " not recognized");
+            }
+        }
+        if(!fileArray.isEmpty())
+            files = fileArray.toArray(new String[0]);
+    }
+    
+    public static void printHelp()
+    {
+        String temp = 
+                "\n"
+                + ">>>>Help<<<<\n"
+                + "Valid options are:\n"
+                + " -k attempts to connect to the Kinect server.\n"
+                + " -l adds a model to load, e.g. \"-l:myModel.obj\".\n"
+                + " -p sets the (absolute) directory to load models from, e.g. \"-p:C:\\Program Files\\Users\\JohnDoe\"."
+                + " Obj files go in a folder named \"models\" in this directory.\n"
+                + " -i turns off inertia mode on the Kinect input smoothing. Only valid if Kinect enabled.\n"
+                + " -f turns on first person mode. Only valid if Kinect disabled.\n";
+        System.out.print(temp);
     }
     
     public void start()
@@ -125,15 +177,10 @@ public class KinectCAD
         
         //temp.offset(-75, -8, 50);
         
-        DrawObject main = loadObj(filepath + file);
-        DrawObject[] o;
-        if(!"".equals(altFile))
+        DrawObject[] o = new DrawObject[files.length];
+        for(int i = 0; i<files.length;i++)
         {
-            DrawObject alt = loadObj(filepath + altFile);
-            o = new DrawObject[]{main,alt};
-        }
-        else{
-            o = new DrawObject[]{main};
+            o[i] = loadObj(filepath + files[i]);
         }
         System.out.println("Loaded in " + (System.currentTimeMillis()-x) + " milliseconds.");
 	//DrawObject o =null;
@@ -259,9 +306,10 @@ public class KinectCAD
     
     public void drawScene(double angleX,double angleY,double[] trans ,DrawObject[] o)
     {
+        
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);  
     if(is3D)
-    glColorMask(true, false, false, false);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);     // Clear The Screen And The Depth Buffer
+        glColorMask(true, false, false, false);   // Clear The Screen And The Depth Buffer
     glLoadIdentity();     
     	
     if(firstPerson){
@@ -284,7 +332,7 @@ public class KinectCAD
     	
     if(is3D){
         
-        glColorMask(false, true, true, false);
+        glColorMask(false, false, true, false);
         glClear(GL_DEPTH_BUFFER_BIT);  
         glLoadIdentity();
         
@@ -295,12 +343,12 @@ public class KinectCAD
         }
         else{
             double[] temp = cameraCoordToAbsoluteAllAxes(.05, 0, 0, angleX, angleY);
-
+            
             glTranslated(trans[0],trans[1],-6+trans[2]);
             glRotated(angleY,1,0,0);
             glRotated(angleX,0,1,0);
             glTranslated(temp[0],temp[1],temp[2]);
-            glRotated(-2,0 , 1, 0);
+            glRotated(-.03, 0 , 1, 0);
         }
 
         for(int i =0; i<l;i++){
@@ -308,6 +356,8 @@ public class KinectCAD
         }
 
         glLoadIdentity();
+        
+        glColorMask(true, true, true, true);
     }
     
     glFlush();
@@ -334,7 +384,6 @@ public class KinectCAD
             {
                 Material.load(filepath + tS.substring(7));
             }
-            
         }
         
         s.close();
@@ -439,12 +488,12 @@ public class KinectCAD
                         normTemp[j] = normArray.get(vertIndArray[2][j]-1);
                     }
                 }
-                    //vertTemp = new Vertex[]{vertArray.get(vertIndArray[0][0]-1),vertArray.get(vertIndArray[0][1]-1),vertArray.get(vertIndArray[0][2]-1)};}
+                //vertTemp = new Vertex[]{vertArray.get(vertIndArray[0][0]-1),vertArray.get(vertIndArray[0][1]-1),vertArray.get(vertIndArray[0][2]-1)};}
                 //if(vertIndArray[1]!=null){
                 //    texTemp = new Vertex[]{texArray.get(vertIndArray[1][0]-1),texArray.get(vertIndArray[1][1]-1),texArray.get(vertIndArray[1][2]-1)};}
                 //if(vertIndArray[2]!=null){
                 //    normTemp = new Vertex[]{normArray.get(vertIndArray[2][0]-1),normArray.get(vertIndArray[2][1]-1),normArray.get(vertIndArray[2][2]-1)};}
-                    
+                
                 Face f = new Face(vertTemp,normTemp,currMtl,texTemp);
                     //System.out.println("Face Added");
                 faceArray.add(f);       
@@ -650,13 +699,13 @@ public class KinectCAD
         
         double rad = 2 * 3.141592653589793238462643383279502884 / 360;
         double[] temp= new double[3];
-        temp[0]+= -1*tempX * Math.cos(rad*angleX);
+        temp[0]+= tempX * Math.cos(rad*angleX);
         temp[0]+= tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*(90-angleX));
         
-        temp[1]+= -1*tempY;
-        temp[1]+= -1*tempZ * Math.cos(rad*(90 - angleY));
+        temp[1]+= tempY;
+        temp[1]+= tempZ * Math.cos(rad*(90 + angleY));
         
-        temp[2]+= tempX * Math.cos(rad*(90-angleX));
+        temp[2]+= tempX * Math.cos(rad*(90+angleX));
         temp[2]+= tempZ * Math.cos(rad*(angleY)) * Math.cos(rad*angleX);   
         return temp;
     }

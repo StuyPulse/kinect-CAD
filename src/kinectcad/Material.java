@@ -84,35 +84,35 @@ public final class Material {
                 }
                 
                 refTemp = tS.substring(7);
-                System.out.println(refTemp);
+                //System.out.println(refTemp);
             }
             
             if(tS.startsWith("Ka")){
                 Scanner sl = new Scanner(tS);
                 sl.skip("Ka");
                 KaTemp = new double[]{sl.nextDouble(),sl.nextDouble(),sl.nextDouble()};
-                System.out.println(KaTemp[0] + " " + KaTemp[0] + " " + KaTemp[0]);
+                //System.out.println(KaTemp[0] + " " + KaTemp[0] + " " + KaTemp[0]);
             }
              
             if(tS.startsWith("Kd")){
                 Scanner sl = new Scanner(tS);
                 sl.skip("Kd");
                 KdTemp = new double[]{sl.nextDouble(),sl.nextDouble(),sl.nextDouble()};
-                System.out.println(KdTemp[0] + " " + KdTemp[0] + " " + KdTemp[0]);
+                //System.out.println(KdTemp[0] + " " + KdTemp[0] + " " + KdTemp[0]);
             }
             
             if(tS.startsWith("Ks")){
                 Scanner sl = new Scanner(tS);
                 sl.skip("Ks");
                 KsTemp = new double[]{sl.nextDouble(),sl.nextDouble(),sl.nextDouble()};
-                System.out.println(KsTemp[0] + " " + KsTemp[0] + " " + KsTemp[0]);
+                //System.out.println(KsTemp[0] + " " + KsTemp[0] + " " + KsTemp[0]);
             }
             
             if(tS.startsWith("d")){
                 Scanner sl = new Scanner(tS);
                 sl.skip("d");
                 dTemp = sl.nextDouble();
-                System.out.println(dTemp);
+                //System.out.println(dTemp);
             }
                 
             if(tS.startsWith("map_Kd"))
@@ -133,19 +133,22 @@ public final class Material {
     
     public Material(double[] ka, double[] kd, double[] ks, double D, String Ref)
     {
-        if(Array.getLength(ka)>3|Array.getLength(kd)>3|Array.getLength(ks)>3)
+        if(ka.length>3|kd.length>3|(ks != null&&ks.length>3))
             System.out.println("Material initialized with improperly sized array");
         
         Ka = ka;
         Kd = kd;
-        Ks = ks;
+        
+        if(ks != null){
+            Ks = ks;
+            SBuff = getSpecular();
+        }
         
         d = D;
         ref = Ref;
         
         ABuff = getAmbient();
         DBuff = getDiffuse();
-        SBuff = getSpecular();
     }
     
     public FloatBuffer getAmbient()
@@ -175,7 +178,7 @@ public final class Material {
     public void loadImage(String file)
     {
         if(file == null){
-            System.out.println("Image path not specified");
+            //System.out.println("Image path not specified");
             texture = null;
             return;
         }
@@ -183,11 +186,11 @@ public final class Material {
         {texture = TextureLoader.getTexture("PNG", ResourceLoader.getResourceAsStream(KinectCAD.filepath + file),true, GL_NEAREST );}
         catch (IOException ex)
         {Logger.getLogger(Material.class.getName()).log(Level.SEVERE, null, ex);}
-        System.out.println("Texture loaded: "+texture);
-        System.out.println(">> Image width: "+texture.getImageWidth());
-        System.out.println(">> Image height: "+texture.getImageHeight());
-        System.out.println(">> Texture width: "+texture.getTextureWidth());
-        System.out.println(">> Texture height: "+texture.getTextureHeight());
+        //System.out.println("Texture loaded: "+texture);
+        //System.out.println(">> Image width: "+texture.getImageWidth());
+        //System.out.println(">> Image height: "+texture.getImageHeight());
+        //System.out.println(">> Texture width: "+texture.getTextureWidth());
+        //System.out.println(">> Texture height: "+texture.getTextureHeight());
         
        
     }

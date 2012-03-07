@@ -11,6 +11,7 @@ package kinectcad;
  */
 
 import java.lang.reflect.Array;
+import java.nio.FloatBuffer;
 import static org.lwjgl.opengl.GL11.*;
 
 public class DrawObject {
@@ -47,7 +48,9 @@ public class DrawObject {
             {
                 glMaterial(GL_FRONT_AND_BACK,GL_AMBIENT,Material.matLibs.get(matLib).get(faceArray[i].currentMat).ABuff);
                 glMaterial(GL_FRONT_AND_BACK,GL_DIFFUSE,Material.matLibs.get(matLib).get(faceArray[i].currentMat).DBuff);
-                glMaterial(GL_FRONT_AND_BACK,GL_SPECULAR,Material.matLibs.get(matLib).get(faceArray[i].currentMat).SBuff);
+                FloatBuffer temp = Material.matLibs.get(matLib).get(faceArray[i].currentMat).SBuff;
+                if(temp != null)
+                glMaterial(GL_FRONT_AND_BACK,GL_SPECULAR,temp);
                 Material.matLibs.get(matLib).get(faceArray[i].currentMat).bindTexture();
             }
             faceArray[i].draw();
