@@ -12,7 +12,12 @@ C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-
 C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\bin\Debug\kinectCad-Server.exe
 C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\bin\Debug\kinectCad-Server.pdb
 C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\obj\x86\Debug\ResolveAssemblyReference.cache
-C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\obj\x86\Debug\WindowsFormsApplication1.Form1.resources
 C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\obj\x86\Debug\WindowsFormsApplication1.Properties.Resources.resources
 C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\obj\x86\Debug\GenerateResource.read.1.tlog
 C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\obj\x86\Debug\GenerateResource.write.1.tlog
+C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\bin\Debug\kinectCad-Server.exe.manifest
+C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\bin\Debug\kinectCad-Server.application
+C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\obj\x86\Debug\kinectCad-Server.exe.manifest
+C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\obj\x86\Debug\kinectCad-Server.application
+C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\obj\x86\Debug\WindowsFormsApplication1.cameraForm.resources
+C:\Users\George\Documents\NetBeansProjects\kinectCAD\kinectCad-Server\kinectCad-Server\obj\x86\Debug\kinectCad-Server.TrustInfo.xml

@@ -82,7 +82,7 @@ public class KinectCAD
             else if(temp.startsWith("-p:"))
                 filepath = temp.substring(3);
             else if(temp.equals("-i"))
-                cameraInertia = false;
+                cameraInertia = true;
             else if(temp.equals("-f"))
                 firstPerson = true;
             else if(temp.equals("-d"))
@@ -94,7 +94,7 @@ public class KinectCAD
             }
             else
             {
-                System.out.println("Command " + temp + " not recognized");
+                System.out.println("Command " + temp + " not recognized\n Use -? for help");
             }
         }
         if(!fileArray.isEmpty())
@@ -109,10 +109,17 @@ public class KinectCAD
                 + "Valid options are:\n"
                 + " -k attempts to connect to the Kinect server.\n"
                 + " -l adds a model to load, e.g. \"-l:myModel.obj\".\n"
+                + "     You can also rotate, move, or scale an object using :r=x,y,z :s=x,y,z :t=x,y,z.\n"
+                + "     For example, \"-l:myModel.obj:r=90,,45:t=5,,:s=2,2,2\" would rotate 90 degrees around the x-axis,"
+                + " 45 around the z-axis, translate 5 units on the x axis, and scale uniformly by a factor of 2. <NOT YET IMPLEMENTED>\n" 
                 + " -p sets the (absolute) directory to load models from, e.g. \"-p:C:\\Program Files\\Users\\JohnDoe\"."
                 + " Obj files go in a folder named \"models\" in this directory.\n"
-                + " -i turns off inertia mode on the Kinect input smoothing. Only valid if Kinect enabled.\n"
-                + " -f turns on first person mode. Only valid if Kinect disabled.\n";
+                + " -i turns on inertia mode on the Kinect input smoothing. Only valid if Kinect enabled.\n"
+                + " -f turns on first person mode. Only valid if Kinect disabled.\n"
+                + "\n"
+                + "Use the arrow keys to orbit and W/S to zoom\n"
+                + "In first person mode, W/A/S/D moves horizontally, while Space/Shift move up and down\n"
+                + "Note: Some models are loaded by default for testing, will be removed in later versions.";
         System.out.print(temp);
     }
     

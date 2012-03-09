@@ -1,0 +1,25 @@
+# Alias Wavefront MTL File Exported from SketchUp
+# with OBJexporter (c) 2010-2011 TIG
+# Made for 'Cube2.obj'
+
+newmtl Default_Material
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+d 1.000000
+
+newmtl Metal_Steel_Textured_White
+Ka 0.000000 0.000000 0.000000
+Kd 0.749020 0.749020 0.749020
+Ks 0.000000 0.000000 0.000000
+d 1.000000
+map_Kd Bench_Textures/Wood_Floor_Light.PNG
+
+newmtl Steel
+Ka 0.000000 0.000000 0.000000
+Kd 0.749020 0.749020 0.749020
+Ks 0.000000 0.000000 0.000000
+d 1.000000
+map_Kd Cube2_Textures/Steel.PNG
+
+#EOF

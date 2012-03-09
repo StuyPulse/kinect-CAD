@@ -9,12 +9,15 @@ using System.Windows.Forms;
 
 namespace WindowsFormsApplication1
 {
-    public partial class Form1 : Form
+    public partial class cameraForm : Form
     {
-        public Form1()
+
+        public String trackingLText = "";
+        public String connectionLText = "";
+
+        public cameraForm()
         {
             InitializeComponent();
-            
         }
 
         public void draw(Bitmap b)
@@ -23,9 +26,20 @@ namespace WindowsFormsApplication1
         }
 
 
-        private void Form1_Click(object sender, EventArgs e)
+        public void setTrackingL(String text)
         {
-            Program.resetTracker();
+            trackingLText = text;
+        }
+
+        public void setConnectionL(String text)
+        {
+            connectionLText = text;
+        }
+
+        private void timer1_Tick(object sender, EventArgs e)
+        {
+            trackingL.Text = trackingLText;
+            connectionL.Text = connectionLText;
         }
 
 

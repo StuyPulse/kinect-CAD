@@ -1,0 +1,32 @@
+# Alias Wavefront MTL File Exported from SketchUp
+# with OBJexporter (c) 2010-2011 TIG
+# Made for 'Cube3.obj'
+
+newmtl Default_Material
+Ka 0.000000 0.000000 0.000000
+Kd 1.000000 1.000000 1.000000
+Ks 0.000000 0.000000 0.000000
+d 1.000000
+
+newmtl Material5
+Ka 0.000000 0.000000 0.000000
+Kd 0.258824 0.333333 0.372549
+Ks 0.000000 0.000000 0.000000
+d 1.000000
+map_Kd Cube3_Textures/Material5.PNG
+
+newmtl Material6
+Ka 0.000000 0.000000 0.000000
+Kd 0.211765 0.321569 0.376471
+Ks 0.000000 0.000000 0.000000
+d 1.000000
+map_Kd Cube3_Textures/Material6.PNG
+
+newmtl Translucent_Glass_Tinted
+Ka 0.000000 0.000000 0.000000
+Kd 0.031373 0.788235 0.945098
+Ks 0.000000 0.000000 0.000000
+d 0.480000
+map_Kd Cube3_Textures/Translucent_Glass_Tinted.PNG
+
+#EOF

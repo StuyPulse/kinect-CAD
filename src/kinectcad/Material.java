@@ -7,7 +7,6 @@ package kinectcad;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
@@ -66,7 +65,7 @@ public final class Material {
         String refTemp = null;
         double[] KaTemp = null;
         double[] KdTemp = null;
-        double[] KsTemp = null;
+        double[] KsTemp = new double[]{0,0,0};
         double dTemp = 0;
         String KdFile = null;        
         Material temp = null;
@@ -138,17 +137,15 @@ public final class Material {
         
         Ka = ka;
         Kd = kd;
+        Ks = ks;
         
-        if(ks != null){
-            Ks = ks;
-            SBuff = getSpecular();
-        }
         
         d = D;
         ref = Ref;
         
         ABuff = getAmbient();
         DBuff = getDiffuse();
+        SBuff = getSpecular();
     }
     
     public FloatBuffer getAmbient()

@@ -17,40 +17,31 @@ namespace WindowsFormsApplication1
         /// The main entry point for the application.
         /// </summary>
         /// 
-        static Form1 f;
+        static cameraForm f;
         static PlanarImage vid;
         static Bitmap b;
         static Runtime nui;
         static JointTracker hand, elbow;
-        static int xTracker, yTracker;
         static Socket listenS, clientS;
         static bool socketOpen = false;
         static int currSkelly;
+        static int PORT = 20736;
 
         
 
         [STAThread]
         static void Main()
         {
-            listenS = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            listenS.Bind(new IPEndPoint(IPAddress.Any,20736));
-            listenS.Listen(4);
-            listenS.BeginAccept(new AsyncCallback(OnCallAccept), null);
-
             b = new Bitmap(640, 480, PixelFormat.Format32bppArgb);
 
             hand = new JointTracker();
             elbow = new JointTracker();
-            xTracker = 320;
-            yTracker = 240;
-
             nui = Runtime.Kinects[0];
             nui.Initialize(RuntimeOptions.UseSkeletalTracking|RuntimeOptions.UseColor);
 
 
             
             nui.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonFrameReady);
-            //nui.DepthFrameReady += new EventHandler<ImageFrameReadyEventArgs>(nui_DepthFrameReady);
             nui.VideoFrameReady += new EventHandler<ImageFrameReadyEventArgs>(FrameReady);
 
 
@@ -59,8 +50,20 @@ namespace WindowsFormsApplication1
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            f = new Form1();
+            f = new cameraForm();
+
+            beginListening();
+            f.setConnectionL("Listening on port " + PORT);
+
             Application.Run(f);
+        }
+
+        public static void beginListening()
+        {
+            listenS = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            listenS.Bind(new IPEndPoint(IPAddress.Any, PORT));
+            listenS.Listen(4);
+            listenS.BeginAccept(new AsyncCallback(OnCallAccept), null);
         }
 
         public static void OnCallAccept(IAsyncResult async)
@@ -68,14 +71,13 @@ namespace WindowsFormsApplication1
             try
             {
                 clientS = listenS.EndAccept(async);
-                Console.WriteLine("Call Accepted");
+                f.setConnectionL("Call Accepted");
                 socketOpen = true;
             }
 
             catch (Exception e)
             {
-                Console.WriteLine(e.ToString());
-                Console.WriteLine("derp");
+                f.setConnectionL(e.ToString());
             }
 
         }
@@ -100,7 +102,7 @@ namespace WindowsFormsApplication1
             }
             else
             {
-                Console.WriteLine("Seeking target...");
+                f.setTrackingL("Seeking target...");
                 for (int i = 0; i < 6; i++)
                 {
                     currSkelly++;
@@ -108,7 +110,7 @@ namespace WindowsFormsApplication1
                     if (skelly[currSkelly].TrackingState == SkeletonTrackingState.PositionOnly || skelly[0].TrackingState == SkeletonTrackingState.Tracked)
                     {
                         isReady = true;
-                        Console.WriteLine("Target Acquired");
+                        f.setTrackingL("Target Acquired");
                         break;
                     }
                 }
@@ -139,25 +141,6 @@ namespace WindowsFormsApplication1
                 Vector output;
 
                 processArm(hand, elbow, out output);
-
-                xd *= 600;
-                yd *= -600;
-
-                xd += 320;
-                yd += 240;
-
-                float tempX = output.X * 200;
-                float tempY = output.Z * 250;
-
-                xTracker += (int)tempX;
-                yTracker += (int)tempY;
-                xTracker = Math.Max(6, Math.Min(xTracker, 634));
-                yTracker = Math.Max(6, Math.Min(yTracker, 434));
-                //Console.WriteLine(xd + " " + yd);
-                drawPoint(320, 240, Brushes.Green);
-                drawPoint((int)xd, (int)yd, Brushes.LightBlue);
-                drawPoint(xTracker, yTracker, Brushes.LightPink);
-
                 sendData();
             }
             f.draw(b);
@@ -211,8 +194,9 @@ namespace WindowsFormsApplication1
                     {
                         clientS.Send(temp);
                     }
-                    catch (SocketException se)
+                    catch (SocketException)
                     {
+                        f.setConnectionL("Connection lost, listening on port "+PORT);
                         socketOpen = false;
                         //listenS.Bind(new IPEndPoint(IPAddress.Any, 20736));
                         listenS.Listen(4);
@@ -231,13 +215,6 @@ namespace WindowsFormsApplication1
                 c[7-i] = char.ToString( (char)(( (b >> i) & 0x1 )+48) );
             }
             return String.Concat(c)+" ";
-        }
-
-        public static void resetTracker()
-        {
-            Console.WriteLine("Tracker Reset");
-            xTracker = 320;
-            yTracker = 240;
         }
 
         public static void findJoint(Vector v,out float xd, out float yd)
