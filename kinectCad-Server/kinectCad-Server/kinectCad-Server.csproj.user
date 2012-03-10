@@ -10,4 +10,7 @@
     <FallbackCulture>en-US</FallbackCulture>
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
+  <PropertyGroup>
+    <ReferencePath>C:\Program Files\Microsoft SDKs\Kinect\v1.0 Beta2\Assemblies\</ReferencePath>
+  </PropertyGroup>
 </Project>
