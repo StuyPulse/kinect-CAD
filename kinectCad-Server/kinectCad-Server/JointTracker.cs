@@ -2,13 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Microsoft.Research.Kinect.Nui;
+using Microsoft.Kinect;
 
 namespace WindowsFormsApplication1
 {
     class JointTracker
     {
-        Vector[] vs;
+        SkeletonPoint[] vs;
         public const int BUFFERSIZE = 100;
         public const int BUFFERSTEP = 25;
         int currIndex;
@@ -16,23 +16,22 @@ namespace WindowsFormsApplication1
         public JointTracker()
         {
             currIndex = 0;
-            vs = new Vector[BUFFERSIZE];
+            vs = new SkeletonPoint[BUFFERSIZE];
         }
 
-        public void recPoint(Vector v)
+        public void recPoint(SkeletonPoint v)
         {
-
             currIndex++;
             vs[currIndex] = v;
             checkAndSolveOverflow();
         }
 
-        public Vector position()
+        public SkeletonPoint position()
         {
             return vs[currIndex];
         }
 
-        public static double slope(Vector v)
+        public static double slope(SkeletonPoint v)
         {
             double t = Math.Sqrt(Math.Pow(v.X,2) + Math.Pow(v.Z,2));
             //Console.WriteLine(v.Y+" "+t);
@@ -46,14 +45,14 @@ namespace WindowsFormsApplication1
         {
             if (currIndex+1 == BUFFERSIZE)
             {
-                Vector[] temp = new Vector[BUFFERSIZE];
+                SkeletonPoint[] temp = new SkeletonPoint[BUFFERSIZE];
                 Array.Copy(vs, BUFFERSTEP-1, temp, 0, BUFFERSIZE - BUFFERSTEP);
                 vs = temp;
                 currIndex = BUFFERSIZE - BUFFERSTEP -1;
             }
         }
 
-        public Vector averageVel(int framesBack, float decayPercent)
+        public SkeletonPoint averageVel(int framesBack, float decayPercent)
         {
             if (framesBack > BUFFERSIZE - BUFFERSTEP || framesBack > currIndex)
             {
@@ -64,7 +63,7 @@ namespace WindowsFormsApplication1
 
                 float averageFactor = 0;
                 float ratio = 1;
-                Vector sum = zeroVec();
+                SkeletonPoint sum = zeroVec();
                 for (int i = 0; i < framesBack; i++)
                 {
                     vecAdd(ref sum, vecMult(ratio, vecSubt(vs[currIndex - i],vs[currIndex-i-1])));
@@ -76,12 +75,12 @@ namespace WindowsFormsApplication1
             
         }
 
-        public Vector lastDistance()
+        public SkeletonPoint lastDistance()
         {
             return vecSubt(vs[currIndex], vs[currIndex - 1]);
         }
 
-        public static Vector vecMult(float coEffish, Vector vec)
+        public static SkeletonPoint vecMult(float coEffish, SkeletonPoint vec)
         {
             vec.X *= coEffish;
             vec.Y *= coEffish;
@@ -89,21 +88,21 @@ namespace WindowsFormsApplication1
             return vec;
         }
 
-        public static void vecMult(float coEffish,ref  Vector vec)
+        public static void vecMult(float coEffish, ref  SkeletonPoint vec)
         {
             vec.X *= coEffish;
             vec.Y *= coEffish;
             vec.Z *= coEffish;
         }
 
-        public static void vecAdd(ref Vector a, Vector b)
+        public static void vecAdd(ref SkeletonPoint a, SkeletonPoint b)
         {
             a.X += b.X;
             a.Y += b.Y;
             a.Z += b.Z;
         }
 
-        public static Vector vecAdd(Vector a, Vector b)
+        public static SkeletonPoint vecAdd(SkeletonPoint a, SkeletonPoint b)
         {
             a.X += b.X;
             a.Y += b.Y;
@@ -111,14 +110,14 @@ namespace WindowsFormsApplication1
             return a;
         }
 
-        public static void vecSubt(ref Vector a, Vector b)
+        public static void vecSubt(ref SkeletonPoint a, SkeletonPoint b)
         {
             a.X -= b.X;
             a.Y -= b.Y;
             a.Z -= b.Z;
         }
 
-        public static Vector vecSubt(Vector a, Vector b)
+        public static SkeletonPoint vecSubt(SkeletonPoint a, SkeletonPoint b)
         {
             a.X -= b.X;
             a.Y -= b.Y;
@@ -126,9 +125,9 @@ namespace WindowsFormsApplication1
             return a;
         }
 
-        public static Vector zeroVec()
+        public static SkeletonPoint zeroVec()
         {
-            Vector temp = new Vector();
+            SkeletonPoint temp = new SkeletonPoint();
             temp.X = 0;
             temp.Y = 0;
             temp.Z = 0;

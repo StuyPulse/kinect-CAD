@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using Microsoft.Research.Kinect.Nui;
+using Microsoft.Kinect;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading;
@@ -18,9 +18,9 @@ namespace WindowsFormsApplication1
         /// </summary>
         /// 
         static cameraForm f;
-        static PlanarImage vid;
+        static Bitmap vid;
         static Bitmap b;
-        static Runtime nui;
+        static KinectSensor myK;
         static JointTracker hand, elbow;
         static Socket listenS, clientS;
         static bool socketOpen = false;
@@ -36,17 +36,15 @@ namespace WindowsFormsApplication1
 
             hand = new JointTracker();
             elbow = new JointTracker();
-            nui = Runtime.Kinects[0];
-            nui.Initialize(RuntimeOptions.UseSkeletalTracking|RuntimeOptions.UseColor);
-
-
+            myK = KinectSensor.KinectSensors[0];
+            myK.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
+            myK.SkeletonStream.Enable();
             
-            nui.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonFrameReady);
-            nui.VideoFrameReady += new EventHandler<ImageFrameReadyEventArgs>(FrameReady);
+            myK.Start();
+            
+            myK.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonFrameReady);
+            myK.ColorFrameReady += new EventHandler<ColorImageFrameReadyEventArgs>(ColorImageFrameReady);
 
-
-            //nui.DepthStream.Open(ImageStreamType.Depth, 4, ImageResolution.Resolution80x60, ImageType.DepthAndPlayerIndex);
-            nui.VideoStream.Open(ImageStreamType.Video, 4, ImageResolution.Resolution640x480, ImageType.Color);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -84,19 +82,20 @@ namespace WindowsFormsApplication1
 
         static void SkeletonFrameReady(object sender, SkeletonFrameReadyEventArgs e)
         {
-            if ((object)vid == null || vid.Bits == null)
+            if ((object)vid == null)
             {
                 return;
             }
             b = PImageToBitmap(vid);
 
-            SkeletonFrame skellies = e.SkeletonFrame;
+            SkeletonFrame skellyIn = e.OpenSkeletonFrame();
+            Skeleton[] skellies = new Skeleton[skellyIn.SkeletonArrayLength];
+            skellyIn.CopySkeletonDataTo(skellies);
             //if(skellies.Skeletons[0].TrackingState.ToString()!="NotTracked")
             //Console.WriteLine(skellies.Skeletons[0].TrackingState.ToString());
-            SkeletonData[] skelly = skellies.Skeletons;
-            JointsCollection j;
+            JointCollection j;
             bool isReady = false;
-            if (skelly[currSkelly].TrackingState == SkeletonTrackingState.PositionOnly || skelly[currSkelly].TrackingState == SkeletonTrackingState.Tracked)
+            if (skellies[currSkelly].TrackingState == SkeletonTrackingState.PositionOnly || skellies[currSkelly].TrackingState == SkeletonTrackingState.Tracked)
             {
                 isReady = true;
             }
@@ -107,7 +106,7 @@ namespace WindowsFormsApplication1
                 {
                     currSkelly++;
                     currSkelly = i;
-                    if (skelly[currSkelly].TrackingState == SkeletonTrackingState.PositionOnly || skelly[0].TrackingState == SkeletonTrackingState.Tracked)
+                    if (skellies[currSkelly].TrackingState == SkeletonTrackingState.PositionOnly || skellies[currSkelly].TrackingState == SkeletonTrackingState.Tracked)
                     {
                         isReady = true;
                         f.setTrackingL("Target Acquired");
@@ -118,35 +117,36 @@ namespace WindowsFormsApplication1
 
             if(isReady)
             {
-                j = skelly[currSkelly].Joints;
+                j = skellies[currSkelly].Joints;
                 Joint h;
                 float xd, yd;
 
-                h = j[JointID.ElbowRight];
+                h = j[JointType.ElbowRight];
                 findJoint(h.Position, out xd, out yd);
                 drawPoint((int)xd, (int)yd);
                 elbow.recPoint(h.Position);
 
-                h = j[JointID.HandRight];
+                h = j[JointType.HandRight];
                 findJoint(h.Position, out xd, out yd);
                 drawPoint((int)xd, (int)yd);
                 hand.recPoint(h.Position);
 
 
-                Vector temp = hand.averageVel(50, .6f);
+                SkeletonPoint temp = hand.averageVel(50, .6f);
                 xd = temp.X;
                 yd = temp.Y;
 
                 //findJoint(temp, out xd, out yd,false);
-                Vector output;
+                SkeletonPoint output;
 
                 processArm(hand, elbow, out output);
                 sendData();
             }
             f.draw(b);
+            skellyIn.Dispose();
         }
 
-        public static void processArm(JointTracker hand, JointTracker elbow,out Vector output)
+        public static void processArm(JointTracker hand, JointTracker elbow, out SkeletonPoint output)
         {
             output = JointTracker.zeroVec();
             double s = JointTracker.slope(JointTracker.vecSubt(hand.position(),elbow.position()));
@@ -217,14 +217,13 @@ namespace WindowsFormsApplication1
             return String.Concat(c)+" ";
         }
 
-        public static void findJoint(Vector v,out float xd, out float yd)
+        public static void findJoint(SkeletonPoint v,out float xd, out float yd)
         {
-            
-
-            nui.SkeletonEngine.SkeletonToDepthImage(
-                      v, out xd, out yd);
-            xd = Math.Max(2, Math.Min(xd * 640, 637));
-            yd = Math.Max(2, Math.Min(yd * 480, 477));
+            ColorImagePoint temp = myK.MapSkeletonPointToColor(v, ColorImageFormat.RgbResolution640x480Fps30);
+            xd = temp.X;
+            yd = temp.Y;
+            //xd = Math.Max(2, Math.Min(xd * 640, 637));
+            //yd = Math.Max(2, Math.Min(yd * 480, 477));
         }
 
 
@@ -242,21 +241,44 @@ namespace WindowsFormsApplication1
             g.FillEllipse(c, xd - 3, yd - 3, 6, 6);
         }
 
-        static void FrameReady(object sender, ImageFrameReadyEventArgs e)
+        static void ColorImageFrameReady(object sender, ColorImageFrameReadyEventArgs e)
         {
-            vid = e.ImageFrame.Image;
-
+            ColorImageFrame temp = e.OpenColorImageFrame();
+            vid = frameToImage(temp);
+            temp.Dispose();
         }
 
-        static void nui_DepthFrameReady(object sender, ImageFrameReadyEventArgs e)
+        public static Bitmap frameToImage(ColorImageFrame f)
         {
-            
+             byte[] pixeldata = 
+                      new byte[f.PixelDataLength];
+             f.CopyPixelDataTo(pixeldata);
+             Bitmap bmap = new Bitmap(
+                    f.Width, 
+                    f.Height, 
+                    PixelFormat.Format32bppRgb);
+             BitmapData bmapdata = bmap.LockBits(
+               new Rectangle(0, 0, 
+                          f.Width, f.Height),
+               ImageLockMode.WriteOnly, 
+               bmap.PixelFormat);
+             IntPtr ptr = bmapdata.Scan0;
+             Marshal.Copy(pixeldata, 0, ptr,
+                        f.PixelDataLength);
+             bmap.UnlockBits(bmapdata);
+             return bmap;
+        }
+
+        static void nui_DepthFrameReady(object sender, DepthImageFrameReadyEventArgs e)
+        {
+            Console.WriteLine("DEPTH FRAMES NOT SUPPORTED YET@!@@E!@ WKLQNCKQLKRNFAWELKN A");
+            return;
             //if ((object)vid == null || vid.Bits == null) return;
             //b = PImageToBitmap(vid);
             if (b == null) return;
 
 
-            PlanarImage image = e.ImageFrame.Image;
+            /*DepthImageFrame image = e.OpenDepthImageFrame();
             int[] depth = new int[image.Width * image.Height];
             int[] player = new int[image.Width * image.Height];
             for (int i = 0; i < depth.Length; i++)
@@ -273,14 +295,9 @@ namespace WindowsFormsApplication1
                 for (int iw = 0; iw < overlay.Width; iw++)
                 {
                     Color c = overlay.GetPixel(iw, ih);
-                    b.SetPixel(iw, ih, c);
-                    
-                   
+                    b.SetPixel(iw, ih, c);  
                 }
-            }
-
-            
-
+            }*/
         }
 
         public static Bitmap intToImage(int[] depthA, int[] playerA, int w, int h)
@@ -308,21 +325,9 @@ namespace WindowsFormsApplication1
             return bT;
         }
 
-        static Bitmap PImageToBitmap(PlanarImage PImage)
+        static Bitmap PImageToBitmap(Bitmap input)
         {
-            Bitmap bmap = new Bitmap(
-                 PImage.Width,
-                 PImage.Height,
-                 PixelFormat.Format32bppRgb);
-            BitmapData bmapdata = bmap.LockBits(
-                 new Rectangle(0, 0, PImage.Width,
-                                   PImage.Height),
-                 ImageLockMode.WriteOnly,
-                 bmap.PixelFormat);
-            IntPtr ptr = bmapdata.Scan0;
-            Marshal.Copy(PImage.Bits,0,ptr,PImage.Width *PImage.BytesPerPixel *PImage.Height);
-            bmap.UnlockBits(bmapdata);
-            return bmap;
+            return input;
         }
     }
 }

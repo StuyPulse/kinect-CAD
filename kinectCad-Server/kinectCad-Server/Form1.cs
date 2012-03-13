@@ -22,7 +22,13 @@ namespace WindowsFormsApplication1
 
         public void draw(Bitmap b)
         {
-            pictureBox1.Image = b;
+            try
+            {
+                pictureBox1.Image = b;
+            }
+            catch (Exception)
+            {
+            }
         }
 
 
