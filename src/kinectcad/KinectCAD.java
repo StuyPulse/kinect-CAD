@@ -38,7 +38,7 @@ public class KinectCAD
     public PhysicsSim phys;
     
     public static String filepath;
-    public static String[] files = new String[]{"cube4.obj","joebot.obj"};
+    public static loadInfo[] files = new loadInfo[]{new loadInfo("cube4.obj"),new loadInfo("joebot.obj")};
     public static boolean firstPerson = false;
     public static boolean cameraInertia = false;
     public static boolean loadKinect = false;
@@ -98,7 +98,53 @@ public class KinectCAD
             }
         }
         if(!fileArray.isEmpty())
-            files = fileArray.toArray(new String[0]);
+            files = parseFiles(fileArray.toArray(new String[0]));
+    }
+    
+    public static loadInfo[] parseFiles(String[] s)
+    {
+        loadInfo[] temp = new loadInfo[s.length]; //something like s = {"herp.obj:r=1,1,1:t=1,1,1","derp.obj:r=1,2,3:s=2,2,2"}
+        for(int i = 0; i < s.length; i++)
+        {
+            double[] trans = new double[]{0,0,0};
+            double[] scale = new double[]{1,1,1};
+            double[] rotate = new double[]{0,0,0};
+            
+            String[] split = s[i].split(":"); //something like {"derp.obj","r=1,1,1","t=1,1,1"}
+            for(int j = 1; j < split.length; j++)
+            {
+                String[] vars = new String[3]; //something like {"1","2","3"}
+                vars = split[j].substring(2).split(",",-1);
+                
+                    if(vars[0].equals(""))
+                        vars[0] = "0";
+                    if(vars[1].equals(""))
+                        vars[1] = "0";
+                    if(vars[2].equals(""))
+                        vars[2] = "0";
+                    
+                if(split[j].startsWith("t="))
+                {
+                    trans = new double[]{Double.parseDouble(vars[0]),Double.parseDouble(vars[1]),Double.parseDouble(vars[2])};
+                }
+                else if(split[j].startsWith("s="))
+                {
+                    if(vars[0].equals(""))
+                        vars[0] = "1";
+                    if(vars[1].equals(""))
+                        vars[1] = "1";
+                    if(vars[2].equals(""))
+                        vars[2] = "1";
+                    scale = new double[]{Double.parseDouble(vars[0]),Double.parseDouble(vars[1]),Double.parseDouble(vars[2])};
+                }
+                else if(split[j].startsWith("r="))
+                {
+                    rotate = new double[]{Double.parseDouble(vars[0]),Double.parseDouble(vars[1]),Double.parseDouble(vars[2])};
+                }
+            }
+            temp[i] = new loadInfo(split[0],trans,rotate,scale);
+        }
+        return temp;
     }
     
     public static void printHelp()
@@ -111,7 +157,7 @@ public class KinectCAD
                 + " -l adds a model to load, e.g. \"-l:myModel.obj\".\n"
                 + "     You can also rotate, move, or scale an object using :r=x,y,z :s=x,y,z :t=x,y,z.\n"
                 + "     For example, \"-l:myModel.obj:r=90,,45:t=5,,:s=2,2,2\" would rotate 90 degrees around the x-axis,"
-                + " 45 around the z-axis, translate 5 units on the x axis, and scale uniformly by a factor of 2. <NOT YET IMPLEMENTED>\n" 
+                + " 45 around the z-axis, translate 5 units on the x axis, and scale uniformly by a factor of 2.\n" 
                 + " -p sets the (absolute) directory to load models from, e.g. \"-p:C:\\Program Files\\Users\\JohnDoe\"."
                 + " Obj files go in a folder named \"models\" in this directory.\n"
                 + " -i turns on inertia mode on the Kinect input smoothing. Only valid if Kinect enabled.\n"
@@ -187,7 +233,7 @@ public class KinectCAD
         DrawObject[] o = new DrawObject[files.length];
         for(int i = 0; i<files.length;i++)
         {
-            o[i] = loadObj(filepath + files[i]);
+            o[i] = loadObj(filepath,files[i]);
         }
         System.out.println("Loaded in " + (System.currentTimeMillis()-x) + " milliseconds.");
 	//DrawObject o =null;
@@ -370,12 +416,12 @@ public class KinectCAD
     glFlush();
     }
     
-    public DrawObject loadObj(String file)
+    public DrawObject loadObj(String path,loadInfo file)
     {
         Scanner s;
         
         try {
-            s = new Scanner(new File(file));
+            s = new Scanner(new File(path+file.file));
         } catch (FileNotFoundException ex) {
             Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
             return null;
@@ -397,7 +443,7 @@ public class KinectCAD
         
         
         try {
-            s = new Scanner(new File(file));
+            s = new Scanner(new File(path+file.file));
         } catch (FileNotFoundException ex) {
             Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
             return null;
@@ -441,7 +487,7 @@ public class KinectCAD
         s.close();
         
         try {
-            s = new Scanner(new File(file));
+            s = new Scanner(new File(path+file.file));
         } catch (FileNotFoundException ex) {
             Logger.getLogger(KinectCAD.class.getName()).log(Level.SEVERE, null, ex);
             return null;
@@ -508,7 +554,11 @@ public class KinectCAD
         }
         s.close();
         Face[] fA = faceArray.toArray(new Face[0]);
-        return new DrawObject(fA,lib);        
+        DrawObject d = new DrawObject(fA,lib);
+        d.offset(file.offset[0], file.offset[1], file.offset[2]);
+        d.rotate(file.rotate[0], file.rotate[1], file.rotate[2]);
+        d.scale(file.scale[0], file.scale[1], file.scale[2]);
+        return d;
     }
     
     public Vertex parseVertex(String tS)
