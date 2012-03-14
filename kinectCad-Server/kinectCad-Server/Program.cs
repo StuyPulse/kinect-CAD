@@ -24,6 +24,7 @@ namespace WindowsFormsApplication1
         static JointTracker hand, elbow;
         static Socket listenS, clientS;
         static bool socketOpen = false;
+        static bool imageSyncBlocked = false;
         static int currSkelly;
         static int PORT = 20736;
 
@@ -86,7 +87,10 @@ namespace WindowsFormsApplication1
             {
                 return;
             }
+            while (imageSyncBlocked) ;
+            imageSyncBlocked = true;
             b = PImageToBitmap(vid);
+            imageSyncBlocked = false;
 
             SkeletonFrame skellyIn = e.OpenSkeletonFrame();
             Skeleton[] skellies = new Skeleton[skellyIn.SkeletonArrayLength];
@@ -243,8 +247,11 @@ namespace WindowsFormsApplication1
 
         static void ColorImageFrameReady(object sender, ColorImageFrameReadyEventArgs e)
         {
+            while (imageSyncBlocked);
+            imageSyncBlocked = true;
             ColorImageFrame temp = e.OpenColorImageFrame();
             vid = frameToImage(temp);
+            imageSyncBlocked = false;
             temp.Dispose();
         }
 
