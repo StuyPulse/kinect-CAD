@@ -54,6 +54,9 @@ public class KinectCAD
     public static float grabFriction = 8f;
     public static float spinSpeed = 10f;
     
+    public static double DEPTH_OFFSET = .05;
+    public static int MAX_FPS = 40;
+    
     
     public static void main(String[] args)
     {
@@ -85,8 +88,23 @@ public class KinectCAD
                 cameraInertia = true;
             else if(temp.equals("-f"))
                 firstPerson = true;
-            else if(temp.equals("-d"))
+            else if(temp.startsWith("-d"))
+            {
                 is3D = true;
+                if(temp.length()>2 && temp.charAt(2)==':')
+                {
+                    try{DEPTH_OFFSET = Double.valueOf(temp.substring(3));}
+                    catch(Exception e) {System.out.println("Invalid depth offset");}
+                }
+            }
+            else if(temp.startsWith("-fps:"))
+            {
+                if(temp.length()>5)
+                {
+                    try{MAX_FPS = Integer.valueOf(temp.substring(5));}
+                    catch(Exception e) {System.out.println("Invalid framerate limit");}
+                }
+            }    
             else if(temp.equals("-?"))
             {
                 printHelp();
@@ -140,7 +158,7 @@ public class KinectCAD
                 else if(split[j].startsWith("r="))
                 {
                     rotate = new double[]{Double.parseDouble(vars[0]),Double.parseDouble(vars[1]),Double.parseDouble(vars[2])};
-                }
+                }   
             }
             temp[i] = new loadInfo(split[0],trans,rotate,scale);
         }
@@ -155,14 +173,15 @@ public class KinectCAD
                 + "Valid options are:\n"
                 + " -k attempts to connect to the Kinect server.\n"
                 + " -l adds a model to load, e.g. \"-l:myModel.obj\".\n"
-                + "     You can also rotate, move, or scale an object using :r=x,y,z :s=x,y,z :t=x,y,z.\n"
+                + "     You can also rotate, move, or scale an object using :r=<x>,<y>,<z> :s=<x>,<y>,<z> :t=<x>,<y>,<z>.\n"
                 + "     For example, \"-l:myModel.obj:r=90,,45:t=5,,:s=2,2,2\" would rotate 90 degrees around the x-axis,"
                 + " 45 around the z-axis, translate 5 units on the x axis, and scale uniformly by a factor of 2.\n" 
                 + " -p sets the (absolute) directory to load models from, e.g. \"-p:C:\\Program Files\\Users\\JohnDoe\"."
                 + " Obj files go in a folder named \"models\" in this directory.\n"
                 + " -i turns on inertia mode on the Kinect input smoothing. Only valid if Kinect enabled.\n"
                 + " -f turns on first person mode. Only valid if Kinect disabled.\n"
-                + " -d turns on 3D mode, viewed in red/blue anaglyph 3D.\n"
+                + " -d turns on 3D mode, viewed in red/blue anaglyph 3D. Use -d:<number>. Generally, anywhere from .1 to .3 is good.\n"
+                + " -fps:<limit> will limit it to however many frames per second.\n"
                 + "\n"
                 + "Use the arrow keys to orbit and W/S to zoom\n"
                 + "In first person mode, W/A/S/D moves horizontally, while Space/Shift move up and down\n"
@@ -238,7 +257,7 @@ public class KinectCAD
         }
         System.out.println("Loaded in " + (System.currentTimeMillis()-x) + " milliseconds.");
 	//DrawObject o =null;
-        Timer timer = new Timer(500);
+        Timer timer = new Timer(MAX_FPS);
         timer.start();
 	while (!Display.isCloseRequested()) {
 	
@@ -396,7 +415,7 @@ public class KinectCAD
             glTranslated(-1*trans[0],-1*trans[1],-1*trans[2]);
         }
         else{
-            double[] temp = cameraCoordToAbsoluteAllAxes(.05, 0, 0, angleX, angleY);
+            double[] temp = cameraCoordToAbsoluteAllAxes(DEPTH_OFFSET, 0, 0, angleX, angleY);
             
             glTranslated(trans[0],trans[1],-6+trans[2]);
             glRotated(angleY,1,0,0);

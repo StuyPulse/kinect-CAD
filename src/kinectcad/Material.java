@@ -8,13 +8,19 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.DoubleBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.lwjgl.BufferUtils;
 import org.newdawn.slick.opengl.Texture;
+import org.newdawn.slick.opengl.TextureImpl;
 import org.newdawn.slick.opengl.TextureLoader;
 import org.newdawn.slick.util.ResourceLoader;
 import static org.lwjgl.opengl.GL11.*;
@@ -37,7 +43,7 @@ public final class Material {
     public String ref;
     public ByteBuffer texBuff;
     public Texture texture;
-    
+            
     public static ArrayList<ArrayList<Material>> matLibs = new ArrayList<ArrayList<Material>>(0);
     static int lastUnloadedArray = -1;
     
@@ -195,7 +201,7 @@ public final class Material {
     public boolean bindTexture()
     {
         if(texture == null){
-            //glBindTexture(GL_TEXTURE_2D, 0);
+            //glBindTexture(GL_TEXTURE_BINDING_2D, 0);
             return false;
         }
         texture.bind();

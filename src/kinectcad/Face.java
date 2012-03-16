@@ -53,10 +53,7 @@ public class Face {
     
     public void draw(boolean flag)
     {
-        glBegin(GL_POLYGON);
-        
-        
-        
+        glBegin(GL_POLYGON); 
         for(int i = 0;i<Array.getLength(vertices);i++)
         {
             //int x;
@@ -64,7 +61,7 @@ public class Face {
             //    x = 1;
             if(normal!=null)
                 glNormal3d(normal[i].x, normal[i].y, normal[i].z);
-            if(tex != null&&flag)
+            if(tex != null)
             {
                 glTexCoord2d(tex[i].x, tex[i].y);
             }

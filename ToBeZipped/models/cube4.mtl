@@ -10,9 +10,8 @@ d 1.000000
 
 newmtl Metal_Brass_Ceiling
 Ka 0.000000 0.000000 0.000000
-Kd 0.862745 0.650980 0.474510
+Kd 1 1 1
 Ks 0.000000 0.000000 0.000000
 d 1.000000
-map_Kd cube4_Textures/Metal_Brass_Ceiling.PNG
 
 #EOF
