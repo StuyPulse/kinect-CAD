@@ -162,6 +162,7 @@ public class KinectCAD
                 + " Obj files go in a folder named \"models\" in this directory.\n"
                 + " -i turns on inertia mode on the Kinect input smoothing. Only valid if Kinect enabled.\n"
                 + " -f turns on first person mode. Only valid if Kinect disabled.\n"
+                + " -d turns on 3D mode, viewed in red/blue anaglyph 3D.\n"
                 + "\n"
                 + "Use the arrow keys to orbit and W/S to zoom\n"
                 + "In first person mode, W/A/S/D moves horizontally, while Space/Shift move up and down\n"
@@ -531,7 +532,11 @@ public class KinectCAD
                     texTemp = new Vertex[l];
                     for(int j = 0; j < l;j++)
                     {
-                        texTemp[j] = texArray.get(vertIndArray[1][j]-1);
+                        int tempTexIndex = vertIndArray[1][j]-1;
+                        if(tempTexIndex == -1)
+                            texTemp[j] = null;
+                        else
+                            texTemp[j] = texArray.get(tempTexIndex);
                     }
                 }
                 if(vertIndArray[2]!=null){
@@ -541,11 +546,6 @@ public class KinectCAD
                         normTemp[j] = normArray.get(vertIndArray[2][j]-1);
                     }
                 }
-                //vertTemp = new Vertex[]{vertArray.get(vertIndArray[0][0]-1),vertArray.get(vertIndArray[0][1]-1),vertArray.get(vertIndArray[0][2]-1)};}
-                //if(vertIndArray[1]!=null){
-                //    texTemp = new Vertex[]{texArray.get(vertIndArray[1][0]-1),texArray.get(vertIndArray[1][1]-1),texArray.get(vertIndArray[1][2]-1)};}
-                //if(vertIndArray[2]!=null){
-                //    normTemp = new Vertex[]{normArray.get(vertIndArray[2][0]-1),normArray.get(vertIndArray[2][1]-1),normArray.get(vertIndArray[2][2]-1)};}
                 
                 Face f = new Face(vertTemp,normTemp,currMtl,texTemp);
                     //System.out.println("Face Added");
@@ -656,6 +656,8 @@ public class KinectCAD
                     if(tl>1&&!"".equals(temp[1])&&texArray!=null)
                     {
                         texArray[i-1] = Integer.parseInt(temp[1]);
+                        if(temp[1].equals(""))
+                            texArray[i-1]=-1;
                     }
                     else
                         texArray=null;

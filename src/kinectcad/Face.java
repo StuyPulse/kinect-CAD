@@ -51,7 +51,7 @@ public class Face {
         tex = textureCoords;
     }
     
-    public void draw()
+    public void draw(boolean flag)
     {
         glBegin(GL_POLYGON);
         
@@ -63,9 +63,10 @@ public class Face {
             //if(i == 3)
             //    x = 1;
             if(normal!=null)
-            glNormal3d(normal[i].x, normal[i].y, normal[i].z);
-            if(tex != null){
-            glTexCoord2d(tex[i].x, tex[i].y);
+                glNormal3d(normal[i].x, normal[i].y, normal[i].z);
+            if(tex != null&&flag)
+            {
+                glTexCoord2d(tex[i].x, tex[i].y);
             }
             glVertex3d(vertices[i].x, vertices[i].y, vertices[i].z);
         }
@@ -73,3 +74,18 @@ public class Face {
     }
     
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -192,13 +192,14 @@ public final class Material {
        
     }
     
-    public void bindTexture()
+    public boolean bindTexture()
     {
         if(texture == null){
-            glBindTexture(GL_TEXTURE_2D, 0);
-            return;
+            //glBindTexture(GL_TEXTURE_2D, 0);
+            return false;
         }
         texture.bind();
+        return true;
     }
     
 }
