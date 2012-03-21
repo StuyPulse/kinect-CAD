@@ -1,0 +1,34 @@
+newmtl blinn4SG
+illum 4
+Kd .700 0.70 0.70
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00 map_Kd Joebot_textures\metal2.png
+
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl initialShadingGroup
+illum 4
+Kd 0.50 0.50 0.50
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+newmtl lambert4SG
+illum 4
+Kd 0.40 0.40 0.40
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00 map_Kd Joebot_Textures\windowpane.png
+
+Ni 1.00
+newmtl lambert6SG
+illum 4
+Kd 1.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00
+Ks 0.50 0.50 0.50
+newmtl lambert7SG
+illum 4
+Kd 0.37 0.37 0.37
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 1.00

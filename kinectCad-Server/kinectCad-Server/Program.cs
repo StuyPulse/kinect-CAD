@@ -19,6 +19,7 @@ namespace WindowsFormsApplication1
         /// 
         static cameraForm f;
         static Bitmap vid;
+        static DepthImageFrame depth;
         static Bitmap b;
         static KinectSensor myK;
         static JointTracker hand, elbow;
@@ -40,11 +41,13 @@ namespace WindowsFormsApplication1
             myK = KinectSensor.KinectSensors[0];
             myK.ColorStream.Enable(ColorImageFormat.RgbResolution640x480Fps30);
             myK.SkeletonStream.Enable();
+            myK.DepthStream.Enable(DepthImageFormat.Resolution320x240Fps30);
             
             myK.Start();
             
             myK.SkeletonFrameReady += new EventHandler<SkeletonFrameReadyEventArgs>(SkeletonFrameReady);
             myK.ColorFrameReady += new EventHandler<ColorImageFrameReadyEventArgs>(ColorImageFrameReady);
+            myK.DepthFrameReady += new EventHandler<DepthImageFrameReadyEventArgs>(DepthFrameReady);
 
 
             Application.EnableVisualStyles();
@@ -128,7 +131,7 @@ namespace WindowsFormsApplication1
                 h = j[JointType.ElbowRight];
                 findJoint(h.Position, out xd, out yd);
                 drawPoint((int)xd, (int)yd);
-                elbow.recPoint(h.Position);
+                //elbow.recPoint(h.Position);
 
                 h = j[JointType.HandRight];
                 findJoint(h.Position, out xd, out yd);
@@ -139,15 +142,32 @@ namespace WindowsFormsApplication1
                 SkeletonPoint temp = hand.averageVel(50, .6f);
                 xd = temp.X;
                 yd = temp.Y;
-
-                //findJoint(temp, out xd, out yd,false);
-                SkeletonPoint output;
-
-                processArm(hand, elbow, out output);
                 sendData();
             }
-            f.draw(b);
+            draw(f);
             skellyIn.Dispose();
+        }
+
+        static void draw(cameraForm f)
+        {
+            Bitmap temp;
+            temp = b;
+            short[] data = new short[depth.PixelDataLength];
+            depth.CopyPixelDataTo(data);
+            for (int y = 0; y < depth.Height; y++)
+            {
+                for (int x = 0; x < depth.Width; x++)
+                {
+                    short s = data[(depth.Width*y+x)];
+                    Color col = temp.GetPixel(2*x,2*y);
+                    if((s&0x0007)!=0)
+                    {
+                        col = Color.FromArgb(col.R,col.G,(col.B+255)/2);
+                        temp.SetPixel(2 * x, 2 * y, col);
+                    }
+                }
+            }
+            f.draw(temp);
         }
 
         public static void processArm(JointTracker hand, JointTracker elbow, out SkeletonPoint output)
@@ -157,10 +177,14 @@ namespace WindowsFormsApplication1
             
             if(s>-.4 && s<.19)
             {
-                //Console.Write("Slope good: ");
                 JointTracker.vecAdd(ref output, hand.lastDistance());
             }
             //Console.WriteLine(s);
+        }
+
+        static void DepthFrameReady(object sender,DepthImageFrameReadyEventArgs e)
+        {
+            depth = e.OpenDepthImageFrame();
         }
 
         public static void sendData()
@@ -257,54 +281,23 @@ namespace WindowsFormsApplication1
 
         public static Bitmap frameToImage(ColorImageFrame f)
         {
-             byte[] pixeldata = 
-                      new byte[f.PixelDataLength];
-             f.CopyPixelDataTo(pixeldata);
-             Bitmap bmap = new Bitmap(
-                    f.Width, 
-                    f.Height, 
-                    PixelFormat.Format32bppRgb);
-             BitmapData bmapdata = bmap.LockBits(
-               new Rectangle(0, 0, 
-                          f.Width, f.Height),
-               ImageLockMode.WriteOnly, 
-               bmap.PixelFormat);
-             IntPtr ptr = bmapdata.Scan0;
-             Marshal.Copy(pixeldata, 0, ptr,
-                        f.PixelDataLength);
-             bmap.UnlockBits(bmapdata);
-             return bmap;
-        }
-
-        static void nui_DepthFrameReady(object sender, DepthImageFrameReadyEventArgs e)
-        {
-            Console.WriteLine("DEPTH FRAMES NOT SUPPORTED YET@!@@E!@ WKLQNCKQLKRNFAWELKN A");
-            return;
-            //if ((object)vid == null || vid.Bits == null) return;
-            //b = PImageToBitmap(vid);
-            if (b == null) return;
-
-
-            /*DepthImageFrame image = e.OpenDepthImageFrame();
-            int[] depth = new int[image.Width * image.Height];
-            int[] player = new int[image.Width * image.Height];
-            for (int i = 0; i < depth.Length; i++)
-            {
-                player[i] = image.Bits[i * 2] & 0x07;
-                depth[i] = (image.Bits[i * 2 + 1] << 5) | (image.Bits[i * 2] >> 3);
-                //player[i] = 0;
-                //depth[i] = (image.Bits[i * 2 + 1] << 8) | (image.Bits[i * 2]);
-            }
-
-            Bitmap overlay = intToImage(depth, player, image.Width, image.Height);
-            for (int ih = 0; ih < overlay.Height; ih++)
-            {
-                for (int iw = 0; iw < overlay.Width; iw++)
-                {
-                    Color c = overlay.GetPixel(iw, ih);
-                    b.SetPixel(iw, ih, c);  
-                }
-            }*/
+            byte[] pixeldata =
+                     new byte[f.PixelDataLength];
+            f.CopyPixelDataTo(pixeldata);
+            Bitmap bmap = new Bitmap(
+                   f.Width,
+                   f.Height,
+                   PixelFormat.Format32bppRgb);
+            BitmapData bmapdata = bmap.LockBits(
+              new Rectangle(0, 0,
+                         f.Width, f.Height),
+              ImageLockMode.WriteOnly,
+              bmap.PixelFormat);
+            IntPtr ptr = bmapdata.Scan0;
+            Marshal.Copy(pixeldata, 0, ptr,
+                       f.PixelDataLength);
+            bmap.UnlockBits(bmapdata);
+            return bmap;
         }
 
         public static Bitmap intToImage(int[] depthA, int[] playerA, int w, int h)
