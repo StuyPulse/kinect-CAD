@@ -185,6 +185,7 @@ public class KinectCAD
                 + "\n"
                 + "Use the arrow keys to orbit and W/S to zoom\n"
                 + "In first person mode, W/A/S/D moves horizontally, while Space/Shift move up and down\n"
+                + "You can press 3 to toggle 3D mode.\n"
                 + "Note: Some models are loaded by default for testing, will be removed in later versions.";
         System.out.print(temp);
     }
@@ -259,6 +260,7 @@ public class KinectCAD
 	//DrawObject o =null;
         Timer timer = new Timer(MAX_FPS);
         timer.start();
+        boolean is3Down = false;
 	while (!Display.isCloseRequested()) {
 	
             
@@ -325,6 +327,18 @@ public class KinectCAD
             {
                 tempZ-=scaleZ;
             }
+            if(Keyboard.isKeyDown(Keyboard.KEY_3))
+            {
+                if(!is3Down)
+                {
+                    is3Down = true;
+                    is3D = !is3D;
+                }
+            }
+                else
+                {
+                    is3Down = false;
+                }
             
             if(firstPerson){
                 double[] temp = cameraCoordToAbsolute(tempX,tempY,tempZ,angleX,angleY);   //FPS STYLE
